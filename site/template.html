@@ -649,7 +649,7 @@
 
   <section class="regime" aria-label="Gama no preço de referência">
     <div class="regime-num">
-      <span class="label">Gama líquido no preço de referência</span>
+      <span class="label" id="s-label-gama">Gama líquido no preço de referência</span>
       <span class="valor" id="s-gama">—</span>
       <span class="unidade">de delta, por 1% de movimento do BOVA11</span>
       <span class="tag" id="s-tag">—</span>
@@ -911,6 +911,11 @@
     const g = vivo ? interp(precoBova(), v.strikes, v.gama) : v.gama_no_spot;
     const negativo = g < 0;
     el("s-gama").textContent = brl(g);
+    // O rotulo tem de dizer a QUE preco o numero se refere: com cotacao ao
+    // vivo ele e reinterpolado a cada busca, sem ela e o do fechamento.
+    el("s-label-gama").textContent = vivo
+      ? "Gama líquido no preço agora"
+      : "Gama líquido no fechamento";
     el("s-gama").style.color = negativo ? "var(--neg)" : "var(--pos)";
     const tag = el("s-tag");
     tag.textContent = negativo ? "Gama negativo" : "Gama positivo";
