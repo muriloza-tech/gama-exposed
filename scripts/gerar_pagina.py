@@ -12,6 +12,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from datetime import date, timedelta
@@ -147,6 +148,16 @@ def main() -> int:
     )
     destino = gerar_site(payload, SAIDA)
     log(f"pagina gerada: {destino} ({destino.stat().st_size} bytes)")
+
+    # Marcador de versao: a pagina consulta este arquivo de tempos em tempos
+    # e avisa quando ha publicacao nova. Sem isso o visitante fica com a
+    # copia em cache do GitHub Pages (10 min) sem saber que ela envelheceu.
+    versao = SAIDA.parent / "versao.json"
+    versao.write_text(
+        json.dumps({"gerado_em": payload["gerado_em"], "as_of": payload["as_of"]}),
+        encoding="utf-8",
+    )
+    log(f"marcador de versao: {versao.name}")
 
     for v in payload["vencimentos"]:
         log(f"  {v['rotulo']}: gama {v['gama_no_spot'] / 1e6:+.2f} mi "
