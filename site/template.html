@@ -964,8 +964,8 @@
       box.appendChild(linhaNivel(
         "Parede de call", "faixa acima do preço",
         cw.inicio === cw.fim ? reais(cw.pico) : reais(cw.inicio) + " – " + reais(cw.fim),
-        cw.inicio === cw.fim ? pontos(cw.pico * DADOS.ratio_win)
-          : pontos(cw.inicio * DADOS.ratio_win) + " – " + pontos(cw.fim * DADOS.ratio_win),
+        cw.inicio === cw.fim ? pontos(cw.pico * ratioAtual())
+          : pontos(cw.inicio * ratioAtual()) + " – " + pontos(cw.fim * ratioAtual()),
         (barra) => {
           const f = document.createElement("div");
           f.className = "faixa";
@@ -984,7 +984,7 @@
         "Virada de sinal",
         (dist >= 0 ? "+" : "−") + fmt2.format(Math.abs(dist)) +
           (vivo ? " do preço agora" : " do fechamento"),
-        reais(v.flip), pontos(v.flip * DADOS.ratio_win),
+        reais(v.flip), pontos(v.flip * ratioAtual()),
         (barra) => {
           const p = document.createElement("div");
           p.className = "ponto";
@@ -1001,8 +1001,8 @@
       box.appendChild(linhaNivel(
         "Parede de put", "faixa abaixo do preço",
         pw.inicio === pw.fim ? reais(pw.pico) : reais(pw.inicio) + " – " + reais(pw.fim),
-        pw.inicio === pw.fim ? pontos(pw.pico * DADOS.ratio_win)
-          : pontos(pw.inicio * DADOS.ratio_win) + " – " + pontos(pw.fim * DADOS.ratio_win),
+        pw.inicio === pw.fim ? pontos(pw.pico * ratioAtual())
+          : pontos(pw.inicio * ratioAtual()) + " – " + pontos(pw.fim * ratioAtual()),
         (barra) => {
           const f = document.createElement("div");
           f.className = "faixa";
@@ -1210,7 +1210,7 @@
         "aria-label": "strike " + fmt2.format(ks[i])
       });
       const conteudo =
-        "<span class='t-strike'>WIN " + pontos(ks[i] * DADOS.ratio_win) +
+        "<span class='t-strike'>WIN " + pontos(ks[i] * ratioAtual()) +
         " &middot; strike " + reais(ks[i]) + "</span>" +
         "<span class='t-linha'><span>Gama</span><span>" + brl(v.gama[i]) + "</span></span>" +
         "<span class='t-linha'><span>Call em aberto</span><span>" + fmt0.format(v.oi_call[i]) + "</span></span>" +
@@ -1248,7 +1248,7 @@
     const tb = document.createElement("tbody");
     v.strikes.forEach((k, i) => {
       const r = document.createElement("tr");
-      [fmt2.format(k), pontos(k * DADOS.ratio_win), brl(v.gama[i]), brl(v.gama_call[i]),
+      [fmt2.format(k), pontos(k * ratioAtual()), brl(v.gama[i]), brl(v.gama_call[i]),
        brl(v.gama_put[i]), fmt0.format(v.oi_call[i]), fmt0.format(v.oi_put[i])]
         .forEach((c) => { const td = document.createElement("td"); td.textContent = c; r.appendChild(td); });
       tb.appendChild(r);

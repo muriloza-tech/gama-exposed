@@ -25,3 +25,8 @@ data/ca-bundle.pem
 # Sistema
 Thumbs.db
 .DS_Store
+
+# Cache local do wrangler: guarda id e nome da conta Cloudflare.
+# Nao e credencial, mas nao tem por que estar num repositorio publico.
+worker/.wrangler/
+worker/node_modules/
