@@ -406,6 +406,82 @@
   td:first-child, th:first-child { text-align: left; color: var(--ink); }
   tr.perto td { background: rgba(255,255,255,0.03); }
 
+  /* =========================================================== agenda === */
+
+  .agenda { display: flex; flex-direction: column; gap: 12px; max-width: 1000px; }
+  .agenda-topo { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .agenda-topo h2 { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .agenda-topo .quando { font-family: var(--f-num); font-size: 11.5px; color: var(--ink-3); }
+  .filtros { display: flex; gap: 6px; margin-left: auto; }
+
+  .grupo-hora {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 0 14px;
+    border-top: 1px solid var(--borda);
+    padding: 11px 0 3px;
+  }
+  .grupo-hora:first-of-type { border-top: 0; }
+  .grupo-hora > .hora {
+    font-family: var(--f-num);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    padding-top: 1px;
+  }
+  .grupo-hora > .itens { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+
+  .evento { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .evento .linha1 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .evento .pais {
+    font-family: var(--f-num);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    border: 1px solid var(--borda-forte);
+    border-radius: 3px;
+    padding: 1px 5px;
+    flex: none;
+  }
+  .evento .titulo { font-size: 13.5px; color: var(--ink); }
+  .evento .periodo { font-family: var(--f-num); font-size: 11px; color: var(--ink-3); }
+  .evento .numeros { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--f-num); font-size: 11.5px; }
+  .evento .numeros b { color: var(--ink); font-weight: 600; }
+  .evento .numeros span { color: var(--ink-3); }
+  .evento .numeros .efetivo b { color: var(--pos); }
+
+  .rel { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .rel.r1 { background: var(--neg); }
+  .rel.r0 { background: var(--put); }
+  .rel.rm1 { background: var(--ink-3); }
+
+  .aviso-agenda {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 16px 18px;
+    color: var(--ink-2);
+    font-size: 13.5px;
+  }
+
+  .marco {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--card-2);
+    border: 1px solid var(--borda-forte);
+    border-radius: 8px;
+    padding: 10px 13px;
+    font-size: 13px;
+  }
+  .marco .rotulo { flex: none; }
+  .marco b { font-family: var(--f-num); color: var(--ink); }
+
+  @media (max-width: 680px) {
+    .grupo-hora { grid-template-columns: 52px minmax(0, 1fr); gap: 0 10px; }
+  }
+
   /* ============================================================ metodo === */
 
   .metodo { display: flex; flex-direction: column; gap: 18px; max-width: 920px; }
@@ -490,6 +566,7 @@
     </div>
     <div class="abas" role="tablist">
       <button class="aba" role="tab" id="t-painel" aria-selected="true" aria-controls="aba-painel">Painel</button>
+      <button class="aba" role="tab" id="t-agenda" aria-selected="false" aria-controls="aba-agenda">Agenda</button>
       <button class="aba" role="tab" id="t-metodo" aria-selected="false" aria-controls="aba-metodo">Método</button>
     </div>
   </div>
@@ -532,6 +609,19 @@
       <div class="conteudo"><table id="tabela"></table></div>
     </details>
 
+  </section>
+
+  <section class="agenda" id="aba-agenda" role="tabpanel" aria-labelledby="t-agenda" hidden>
+    <div class="agenda-topo">
+      <h2>Agenda do dia</h2>
+      <span class="quando" id="ag-quando">—</span>
+      <div class="filtros">
+        <button class="btn" id="ag-todos" type="button" aria-pressed="true">Tudo</button>
+        <button class="btn" id="ag-relev" type="button" aria-pressed="false">Só relevantes</button>
+      </div>
+    </div>
+    <div id="ag-marcos"></div>
+    <div id="ag-lista"></div>
   </section>
 
   <section class="metodo" id="aba-metodo" role="tabpanel" aria-labelledby="t-metodo" hidden>
@@ -1279,6 +1369,160 @@
       v.dias + " dias só distingue efeitos maiores que cerca de 3 pontos percentuais: um efeito real menor que isso seria invisível aqui. O intradiário usado é do Ibovespa à vista, não do futuro, e apenas o vencimento mais curto entra no perfil.";
   }
 
+  /* ============================================================ agenda == */
+
+  const PAIS_NOME = {
+    BR: "Brasil", US: "EUA", EU: "Zona do euro", GB: "Reino Unido",
+    DE: "Alemanha", CN: "China", JP: "Japão",
+  };
+
+  let agenda = null;
+  let soRelevantes = false;
+
+  const horaBrt = (iso) =>
+    new Date(iso).toLocaleTimeString("pt-BR", {
+      hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo",
+    });
+
+  /* Marcos que saem do proprio painel -- nada de fonte externa aqui. O
+     vencimento e o evento que mais muda o perfil de gama, entao ele pertence
+     a agenda tanto quanto qualquer indicador. */
+  function marcosDoPainel() {
+    const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+    return DADOS.vencimentos.map((v) => {
+      const dias = Math.round((Date.parse(v.data) - Date.parse(hoje)) / 86400000);
+      const quando = dias === 0 ? "hoje" : dias === 1 ? "amanhã" : "em " + dias + " dias";
+      return { rotulo: v.rotulo.split(" ")[0], data: v.data, quando, dias };
+    }).filter((m) => m.dias >= 0);
+  }
+
+  function pintarMarcos() {
+    const box = el("ag-marcos");
+    box.textContent = "";
+    const ms = marcosDoPainel();
+    if (!ms.length) return;
+    const div = document.createElement("div");
+    div.className = "marco";
+    const r = document.createElement("span");
+    r.className = "rotulo";
+    r.textContent = "Vencimento de opções BOVA11";
+    const txt = document.createElement("span");
+    txt.innerHTML = ms.slice(0, 3).map((m) =>
+      m.rotulo + " <b>" + m.data.split("-").reverse().join("/") + "</b> (" + m.quando + ")"
+    ).join("  ·  ");
+    div.append(r, txt);
+    box.appendChild(div);
+  }
+
+  function pintarAgenda() {
+    pintarMarcos();
+    const lista = el("ag-lista");
+    lista.textContent = "";
+
+    if (!DADOS.cotacao_url) {
+      lista.innerHTML = '<div class="aviso-agenda">A agenda precisa do proxy de dados configurado. Sem ele, esta aba fica vazia — o painel de gama não depende dela.</div>';
+      return;
+    }
+    if (agenda === null) {
+      lista.innerHTML = '<div class="aviso-agenda">Carregando a agenda…</div>';
+      return;
+    }
+    if (!agenda.ok) {
+      lista.innerHTML = '<div class="aviso-agenda">Agenda indisponível no momento' +
+        (agenda.erro ? " (" + agenda.erro + ")" : "") +
+        '. O painel de gama não é afetado — ele já vem calculado.</div>';
+      return;
+    }
+
+    const evs = agenda.eventos.filter((e) => !soRelevantes || e.relevancia >= 0);
+    if (!evs.length) {
+      lista.innerHTML = '<div class="aviso-agenda">Nenhum evento' +
+        (soRelevantes ? " relevante" : "") + " para hoje nas praças acompanhadas.</div>";
+      return;
+    }
+
+    const porHora = new Map();
+    evs.forEach((e) => {
+      const h = horaBrt(e.hora);
+      if (!porHora.has(h)) porHora.set(h, []);
+      porHora.get(h).push(e);
+    });
+
+    porHora.forEach((itens, h) => {
+      const g = document.createElement("div");
+      g.className = "grupo-hora";
+      const hh = document.createElement("div");
+      hh.className = "hora";
+      hh.textContent = h;
+      const box = document.createElement("div");
+      box.className = "itens";
+
+      itens.forEach((e) => {
+        const ev = document.createElement("div");
+        ev.className = "evento";
+
+        const l1 = document.createElement("div");
+        l1.className = "linha1";
+        const dot = document.createElement("span");
+        dot.className = "rel r" + (e.relevancia === 1 ? "1" : e.relevancia === 0 ? "0" : "m1");
+        dot.title = e.relevancia === 1 ? "alta relevância"
+          : e.relevancia === 0 ? "média relevância" : "baixa relevância";
+        const pais = document.createElement("span");
+        pais.className = "pais";
+        pais.textContent = PAIS_NOME[e.pais] || e.pais;
+        const tit = document.createElement("span");
+        tit.className = "titulo";
+        tit.textContent = e.titulo;
+        l1.append(dot, pais, tit);
+        if (e.periodo) {
+          const per = document.createElement("span");
+          per.className = "periodo";
+          per.textContent = "(" + e.periodo + ")";
+          l1.appendChild(per);
+        }
+        ev.appendChild(l1);
+
+        const num = [];
+        if (e.efetivo != null && e.efetivo !== "") num.push(["efetivo", "Efetivo", e.efetivo]);
+        if (e.consenso != null && e.consenso !== "") num.push(["", "Consenso", e.consenso]);
+        if (e.anterior != null && e.anterior !== "") num.push(["", "Anterior", e.anterior]);
+        if (num.length) {
+          const n = document.createElement("div");
+          n.className = "numeros";
+          num.forEach(([cls, rot, val]) => {
+            const s = document.createElement("span");
+            if (cls) s.className = cls;
+            s.append(rot + " ");
+            const b = document.createElement("b");
+            b.textContent = String(val);
+            s.appendChild(b);
+            n.appendChild(s);
+          });
+          ev.appendChild(n);
+        }
+        box.appendChild(ev);
+      });
+
+      g.append(hh, box);
+      lista.appendChild(g);
+    });
+
+    el("ag-quando").textContent =
+      agenda.dia.split("-").reverse().join("/") + " · horários de Brasília · " +
+      evs.length + " evento(s)";
+  }
+
+  async function buscarAgenda() {
+    if (!DADOS.cotacao_url) return;
+    try {
+      const r = await fetch(DADOS.cotacao_url + "?r=agenda", { cache: "no-store" });
+      agenda = await r.json();
+    } catch (e) {
+      agenda = { ok: false, eventos: [], erro: String(e.message || e), dia: "" };
+    }
+    pintarAgenda();
+  }
+
   /* =========================================================== ao vivo == */
 
   const INTERVALO_MS = 30000;
@@ -1335,16 +1579,30 @@
     pintarTabela(v);
   }
 
+  const ABAS = ["painel", "agenda", "metodo"];
   function trocarAba(qual) {
-    const painel = qual === "painel";
-    el("aba-painel").hidden = !painel;
-    el("aba-metodo").hidden = painel;
-    el("t-painel").setAttribute("aria-selected", String(painel));
-    el("t-metodo").setAttribute("aria-selected", String(!painel));
+    ABAS.forEach((a) => {
+      el("aba-" + a).hidden = a !== qual;
+      el("t-" + a).setAttribute("aria-selected", String(a === qual));
+    });
     window.scrollTo({ top: 0 });
+    // Busca sob demanda: quem nunca abre a Agenda nao gasta requisicao.
+    if (qual === "agenda" && agenda === null) buscarAgenda();
   }
-  el("t-painel").addEventListener("click", () => trocarAba("painel"));
-  el("t-metodo").addEventListener("click", () => trocarAba("metodo"));
+  ABAS.forEach((a) => el("t-" + a).addEventListener("click", () => trocarAba(a)));
+
+  el("ag-todos").addEventListener("click", () => {
+    soRelevantes = false;
+    el("ag-todos").setAttribute("aria-pressed", "true");
+    el("ag-relev").setAttribute("aria-pressed", "false");
+    pintarAgenda();
+  });
+  el("ag-relev").addEventListener("click", () => {
+    soRelevantes = true;
+    el("ag-todos").setAttribute("aria-pressed", "false");
+    el("ag-relev").setAttribute("aria-pressed", "true");
+    pintarAgenda();
+  });
 
   el("btn-zoom").addEventListener("click", (ev) => {
     zoomAtm = !zoomAtm;
