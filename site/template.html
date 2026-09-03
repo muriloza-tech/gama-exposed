@@ -1,616 +1,473 @@
 <title>Gama Exposed</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
+  /* Terminal escuro, tema unico e deliberado: a leitura acontece durante o
+     pregao, ao lado do book. Toda cor e pintada explicitamente para a pagina
+     nao herdar o fundo do host. */
   :root {
-    --ground: #eaedee;
-    --surface: #fbfcfc;
-    --surface-2: #f2f4f5;
-    --line: #d4dadd;
-    --line-strong: #aab4b9;
-    --ink: #14181b;
-    --ink-2: #47535a;
-    --ink-3: #6f7c83;
-    --neg: #c2521a;
-    --neg-soft: rgba(194, 82, 26, 0.13);
-    --pos: #1263a8;
-    --pos-soft: rgba(18, 99, 168, 0.13);
-    --gama-pos: #17803d;
-    --gama-neg: #cf2b2b;
-    --call: #1263a8;
-    --put: #d97706;
-    --flip: #8b3fc4;
-    --shadow: 0 1px 2px rgba(20, 24, 27, 0.06), 0 8px 24px rgba(20, 24, 27, 0.04);
+    color-scheme: dark;
 
-    --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
-    --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-    --f-mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
-  }
+    --bg: #0b0e14;
+    --card: #12161f;
+    --chart: #0e1219;
+    --card-2: #171c27;
+    --borda: rgba(255, 255, 255, 0.06);
+    --borda-forte: rgba(255, 255, 255, 0.14);
 
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ground: #0f1416;
-      --surface: #171e21;
-      --surface-2: #1e262a;
-      --line: #2b353a;
-      --line-strong: #45535a;
-      --ink: #e7edef;
-      --ink-2: #a4b1b7;
-      --ink-3: #7d8b92;
-      --neg: #d4742f;
-      --neg-soft: rgba(212, 116, 47, 0.18);
-      --pos: #3d9fd2;
-      --pos-soft: rgba(61, 159, 210, 0.18);
-      --gama-pos: #3fb950;
-      --gama-neg: #f8514a;
-      --call: #3d9fd2;
-      --put: #f0a03c;
-      --flip: #bb7ae8;
-      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.28);
-    }
-  }
+    --ink: #f2f4f8;
+    --ink-2: #9aa3b2;
+    --ink-3: #6b7380;
 
-  :root[data-theme="dark"] {
-    --ground: #0f1416;
-    --surface: #171e21;
-    --surface-2: #1e262a;
-    --line: #2b353a;
-    --line-strong: #45535a;
-    --ink: #e7edef;
-    --ink-2: #a4b1b7;
-    --ink-3: #7d8b92;
-    --neg: #d4742f;
-    --neg-soft: rgba(212, 116, 47, 0.18);
-    --pos: #3d9fd2;
-    --pos-soft: rgba(61, 159, 210, 0.18);
-    --gama-pos: #3fb950;
-    --gama-neg: #f8514a;
-    --call: #3d9fd2;
-    --put: #f0a03c;
-    --flip: #bb7ae8;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.28);
+    --pos: #00e676;
+    --neg: #ff3b5c;
+    --call: #3b82f6;
+    --put: #ff8a00;
+
+    --preco: #ffffff;
+    --virada: #c084fc;
+    --parede-call: #60a5fa;
+    --parede-put: #fb923c;
+
+    --f-ui: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --f-num: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
   }
 
   * { box-sizing: border-box; }
 
   body {
     margin: 0;
-    background: var(--ground);
+    background: var(--bg);
     color: var(--ink);
-    font-family: var(--f-body);
-    font-size: 15px;
-    line-height: 1.55;
+    font-family: var(--f-ui);
+    font-size: 14px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
-  }
-
-  .wrap {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 28px 20px 72px;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-  }
-
-  /* ---------------------------------------------------------- cabecalho */
-
-  .top { display: flex; flex-direction: column; gap: 14px; }
-
-  .eyebrow {
-    font-family: var(--f-mono);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
-
-  h1 {
-    font-family: var(--f-display);
-    font-weight: 700;
-    font-size: clamp(30px, 5vw, 44px);
-    letter-spacing: -0.02em;
-    line-height: 1.02;
-    margin: 0;
-    text-wrap: balance;
-  }
-
-  .sub { color: var(--ink-2); max-width: 64ch; margin: 0; }
-
-  .stamp {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 22px;
-    align-items: baseline;
-    padding: 12px 0 0;
-    border-top: 1px solid var(--line);
-    font-family: var(--f-mono);
-    font-size: 12.5px;
-    color: var(--ink-2);
-  }
-  .stamp b {
-    color: var(--ink);
-    font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
 
-  .vivo {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    color: var(--ink-3);
-  }
-  .vivo::before {
-    content: "";
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--ink-3);
-  }
-  .vivo.ativo { color: var(--gama-pos); }
-  .vivo.ativo::before {
-    background: var(--gama-pos);
-    animation: pulso 2.4s ease-in-out infinite;
-  }
-  .vivo.falha { color: var(--ink-3); }
-  @keyframes pulso { 50% { opacity: 0.3; } }
-  @media (prefers-reduced-motion: reduce) {
-    .vivo.ativo::before { animation: none; }
-  }
-
-  /* ------------------------------------------------------ vencimentos */
-
-  .venc { display: flex; flex-wrap: wrap; gap: 8px; }
-
-  .chip {
-    font-family: var(--f-mono);
-    font-size: 12.5px;
+  .rotulo {
+    font-family: var(--f-num);
+    font-size: 10px;
     font-weight: 500;
-    color: var(--ink-2);
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 7px 13px;
-    cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .chip:hover { border-color: var(--line-strong); color: var(--ink); }
-  .chip[aria-pressed="true"] {
-    color: var(--ink);
-    border-color: var(--ink);
-    box-shadow: inset 0 -2px 0 var(--ink);
-  }
-  .chip:focus-visible { outline: 2px solid var(--pos); outline-offset: 2px; }
-
-  /* ---------------------------------------------------------- regime */
-
-  .regime {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-    gap: 0;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  @media (max-width: 720px) { .regime { grid-template-columns: 1fr; } }
-
-  .regime-num { padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; }
-  .regime-num .label {
-    font-family: var(--f-mono);
-    font-size: 11px;
     letter-spacing: 0.11em;
     text-transform: uppercase;
     color: var(--ink-3);
   }
-  .regime-num .valor {
-    font-family: var(--f-display);
-    font-weight: 700;
-    font-size: clamp(28px, 4.6vw, 40px);
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.05;
-  }
-  .regime-num .unidade { font-size: 13px; color: var(--ink-2); }
 
-  .tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    align-self: flex-start;
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    font-weight: 600;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    padding: 4px 9px;
-    border-radius: 2px;
-    margin-top: 2px;
-  }
-  .tag::before {
-    content: "";
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-  .tag.is-neg { color: var(--neg); background: var(--neg-soft); }
-  .tag.is-pos { color: var(--pos); background: var(--pos-soft); }
+  /* ============================================================ topbar == */
 
-  .regime-txt {
-    padding: 20px 22px;
-    border-left: 1px solid var(--line);
-    background: var(--surface-2);
-    font-size: 14px;
-    color: var(--ink-2);
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(11, 14, 20, 0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--borda);
   }
-  @media (max-width: 720px) {
-    .regime-txt { border-left: 0; border-top: 1px solid var(--line); }
-  }
-  .regime-txt p { margin: 0 0 9px; }
-  .regime-txt p:last-child { margin-bottom: 0; }
-  .regime-txt strong { color: var(--ink); font-weight: 600; }
-  .regime-txt a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
-  .regime-txt a:hover { color: var(--pos); }
-
-  /* ----------------------------------------------------------- niveis */
-
-  h2 {
-    font-family: var(--f-display);
-    font-weight: 600;
-    font-size: 19px;
-    letter-spacing: -0.01em;
-    margin: 0 0 2px;
-  }
-  .secao { display: flex; flex-direction: column; gap: 12px; }
-  .secao > .hint { margin: 0; font-size: 13.5px; color: var(--ink-3); max-width: 70ch; }
-
-  .niveis { display: flex; flex-direction: column; }
-
-  .nivel {
-    display: grid;
-    grid-template-columns: 190px minmax(0, 1fr) 120px 120px;
-    gap: 16px;
-    align-items: center;
-    padding: 13px 2px;
-    border-bottom: 1px solid var(--line);
-  }
-  .nivel:first-child { border-top: 1px solid var(--line); }
-  @media (max-width: 720px) {
-    .nivel { grid-template-columns: 1fr 1fr; gap: 6px 14px; }
-    .nivel .nome { grid-column: 1 / -1; }
-  }
-
-  .nivel .nome { display: flex; flex-direction: column; gap: 1px; }
-  .nivel .nome span:first-child {
-    font-weight: 600;
-    font-size: 14.5px;
-  }
-  .nivel .nome span:last-child {
-    font-family: var(--f-mono);
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
-
-  .nivel .barra { position: relative; height: 26px; }
-  .nivel .barra .trilho {
-    position: absolute;
-    inset: 11px 0 auto;
-    height: 3px;
-    background: var(--line);
-  }
-  .nivel .barra .faixa {
-    position: absolute;
-    top: 6px;
-    height: 13px;
-    border-radius: 1px;
-  }
-  .nivel .barra .marca {
-    position: absolute;
-    top: 2px;
-    width: 2px;
-    height: 21px;
-    background: var(--ink);
-  }
-  .nivel .barra .ponto {
-    position: absolute;
-    top: 6px;
-    width: 3px;
-    height: 13px;
-  }
-
-  .nivel .cifra,
-  .nivel .win {
-    font-family: var(--f-mono);
-    font-size: 14px;
-    font-variant-numeric: tabular-nums;
-    text-align: right;
-  }
-  .nivel .cifra { font-weight: 600; }
-  .nivel .win { color: var(--ink-2); }
-  .nivel .cifra small,
-  .nivel .win small {
-    display: block;
-    font-size: 10.5px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 400;
-  }
-
-  /* ---------------------------------------------------------- grafico */
-
-  .cartao-grafico {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    padding: 18px 18px 14px;
-  }
-
-  .legenda {
+  .topbar-in {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 9px 18px;
+    min-height: 58px;
     display: flex;
+    align-items: center;
+    gap: 18px;
     flex-wrap: wrap;
-    gap: 6px 20px;
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    color: var(--ink-2);
-    margin-bottom: 14px;
   }
-  .legenda i {
-    display: inline-block;
-    width: 11px; height: 11px;
-    border-radius: 1px;
-    margin-right: 6px;
-    vertical-align: -1px;
-  }
-  .legenda .k { display: flex; align-items: center; }
-  .legenda .risco {
-    width: 15px; height: 0;
-    border-top: 2px solid var(--ink);
-    margin-right: 6px;
-    display: inline-block;
-    vertical-align: 4px;
-  }
-  .legenda .risco.tracejada { border-top-style: dashed; }
 
-  .scroller { overflow-x: auto; }
-  svg { display: block; max-width: 100%; height: auto; }
-
-  .g-eixo { stroke: var(--line); stroke-width: 1; }
-  .g-grade { stroke: var(--line); stroke-width: 1; opacity: 0.55; }
-  .g-rotulo {
-    font-family: var(--f-mono);
-    font-size: 10.5px;
-    fill: var(--ink-3);
-  }
-  .g-strike {
-    font-family: var(--f-mono);
-    font-size: 11px;
-    fill: var(--ink-2);
-    font-variant-numeric: tabular-nums;
-  }
-  .g-strike.destaque { fill: var(--ink); font-weight: 600; }
-  .g-titulo {
-    font-family: var(--f-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    fill: var(--ink-3);
-    text-transform: uppercase;
-  }
-  .g-valor {
-    font-family: var(--f-mono);
-    font-size: 9.5px;
-    font-weight: 500;
-    fill: var(--ink-2);
-    font-variant-numeric: tabular-nums;
-  }
-  .g-etiqueta {
-    font-family: var(--f-mono);
-    font-size: 9px;
-    font-weight: 600;
-    fill: #ffffff;
-    letter-spacing: 0.04em;
-  }
-  .g-linha-spot { stroke: var(--ink); stroke-width: 1.75; }
-  .g-linha-flip { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
-  .g-nota {
-    font-family: var(--f-mono);
-    font-size: 10px;
-    fill: var(--ink-2);
-    font-weight: 500;
-  }
-  .barra-alvo { fill: transparent; cursor: crosshair; }
-  .barra-alvo:hover + .realce, .barra-alvo:focus + .realce { opacity: 1; }
-  .realce { fill: var(--ink); opacity: 0; pointer-events: none; }
-
-  .tooltip {
-    position: fixed;
-    z-index: 40;
-    pointer-events: none;
-    background: var(--surface);
-    border: 1px solid var(--line-strong);
-    border-radius: 3px;
-    box-shadow: var(--shadow);
-    padding: 9px 11px;
-    font-family: var(--f-mono);
-    font-size: 11.5px;
-    line-height: 1.5;
-    color: var(--ink);
-    max-width: 250px;
-  }
-  .tooltip[hidden] { display: none; }
-  .tooltip .t-strike {
-    font-weight: 600;
-    display: block;
-    margin-bottom: 4px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid var(--line);
-  }
-  .tooltip .t-linha { display: flex; justify-content: space-between; gap: 14px; }
-  .tooltip .t-linha span:last-child { font-variant-numeric: tabular-nums; }
-
-  /* --------------------------------------------------------- tabelas */
-
-  details {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-  }
-  summary {
-    cursor: pointer;
-    padding: 13px 16px;
-    font-family: var(--f-mono);
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-2);
-  }
-  summary:hover { color: var(--ink); }
-  summary:focus-visible { outline: 2px solid var(--pos); outline-offset: -2px; }
-  details > div { padding: 0 16px 16px; }
-
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th, td {
-    padding: 6px 10px;
-    text-align: right;
-    border-bottom: 1px solid var(--line);
-    font-family: var(--f-mono);
-    font-variant-numeric: tabular-nums;
-  }
-  th {
-    font-size: 10.5px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 500;
+  .marca {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
     white-space: nowrap;
   }
-  th:first-child, td:first-child { text-align: left; }
-
-  /* ------------------------------------------------------ validacao */
-
-  .validacao {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .validacao .cabeca {
-    padding: 18px 20px;
-    border-bottom: 1px solid var(--line);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .validacao .veredito {
-    font-family: var(--f-display);
-    font-size: clamp(17px, 2.6vw, 21px);
+  .marca em {
+    font-style: normal;
+    font-family: var(--f-num);
+    font-size: 9.5px;
     font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.3;
-    margin: 0;
-    text-wrap: balance;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    text-transform: uppercase;
   }
-  .validacao .amostra {
-    font-family: var(--f-mono);
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 4px 16px;
+    flex-wrap: wrap;
+    font-family: var(--f-num);
     font-size: 11.5px;
-    letter-spacing: 0.05em;
+    color: var(--ink-3);
+    margin-right: auto;
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .meta .sep { width: 1px; height: 13px; background: var(--borda-forte); }
+
+  .vivo { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .vivo::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ink-3);
+  }
+  .vivo.ativo { color: var(--pos); }
+  .vivo.ativo::before { background: var(--pos); animation: pulso 2.4s ease-in-out infinite; }
+  @keyframes pulso { 50% { opacity: 0.25; } }
+
+  .abas {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 7px;
+  }
+  .aba {
+    appearance: none;
+    background: none;
+    border: 0;
+    border-radius: 5px;
+    padding: 6px 15px;
+    font-family: var(--f-num);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--ink-3);
+    cursor: pointer;
+    transition: color 0.14s, background 0.14s;
   }
-  .validacao .corpo { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
-  .validacao p { margin: 0; font-size: 13.5px; color: var(--ink-2); max-width: 76ch; }
-  .validacao p strong { color: var(--ink); font-weight: 600; }
+  .aba:hover { color: var(--ink-2); }
+  .aba[aria-selected="true"] { background: var(--card-2); color: var(--ink); }
+  .aba:focus-visible { outline: 2px solid var(--call); outline-offset: 1px; }
+
+  /* ============================================================= layout == */
+
+  main { max-width: 1600px; margin: 0 auto; padding: 14px 18px 36px; }
+  .painel { display: flex; flex-direction: column; gap: 12px; }
+  [hidden] { display: none !important; }
+
+  /* ======================================================== vencimentos == */
+
+  .venc-linha { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .venc { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    appearance: none;
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+    padding: 7px 13px;
+    font-family: var(--f-num);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: border-color 0.14s, color 0.14s, background 0.14s;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--borda-forte); color: var(--ink); }
+  .chip[aria-pressed="true"] {
+    background: var(--card-2);
+    border-color: var(--ink-3);
+    color: var(--ink);
+  }
+  .chip:focus-visible { outline: 2px solid var(--call); outline-offset: 1px; }
+  .chip .oi { color: var(--ink-3); font-size: 10.5px; margin-left: 8px; }
+  .chip[aria-pressed="true"] .oi { color: var(--ink-2); }
+
+  /* =============================================================== KPIs == */
+
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .kpi {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 12px 15px 13px 17px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .kpi::after {
+    content: "";
+    position: absolute;
+    left: 0; top: 12px; bottom: 12px;
+    width: 2px;
+    border-radius: 0 2px 2px 0;
+    background: var(--faixa, transparent);
+  }
+  .kpi .topo-kpi { display: flex; align-items: center; gap: 6px; }
+  .kpi .valor {
+    font-family: var(--f-num);
+    font-size: clamp(21px, 2.3vw, 29px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kpi .abaixo {
+    font-family: var(--f-num);
+    font-size: 11.5px;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ajuda {
+    appearance: none;
+    background: none;
+    border: 1px solid var(--borda-forte);
+    color: var(--ink-3);
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    font-size: 9.5px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    flex: none;
+  }
+  .ajuda:hover { color: var(--ink); border-color: var(--ink-3); }
+  .ajuda:focus-visible { outline: 2px solid var(--call); outline-offset: 1px; }
+
+  .popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 10px;
+    right: 10px;
+    z-index: 20;
+    background: var(--card-2);
+    border: 1px solid var(--borda-forte);
+    border-radius: 8px;
+    padding: 11px 13px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  }
+  .popover strong { color: var(--ink); font-weight: 600; }
 
   .selo {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    align-self: flex-start;
-    font-family: var(--f-mono);
-    font-size: 11px;
+    gap: 5px;
+    font-family: var(--f-num);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .selo::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .selo.is-pos { color: var(--pos); background: rgba(0, 230, 118, 0.12); }
+  .selo.is-neg { color: var(--neg); background: rgba(255, 59, 92, 0.12); }
+  .selo.neutro { color: var(--ink-2); background: var(--card-2); }
+
+  /* ======================================================= cards nivel === */
+
+  .niveis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .nivel {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 12px 15px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .nivel .cab { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .nivel .faixa-txt { font-family: var(--f-num); font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .nivel .dados { display: flex; gap: 18px; flex-wrap: wrap; }
+  .nivel .dado { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .nivel .dado span:last-child { font-family: var(--f-num); font-size: 12.5px; color: var(--ink); }
+
+  .trilho { position: relative; height: 20px; }
+  .trilho .base { position: absolute; inset: 9px 0 auto; height: 2px; background: rgba(255,255,255,0.09); border-radius: 2px; }
+  .trilho .zona { position: absolute; top: 6px; height: 8px; border-radius: 2px; opacity: 0.85; }
+  .trilho .pico { position: absolute; top: 3px; width: 2px; height: 14px; }
+  .trilho .aqui { position: absolute; top: 1px; width: 2px; height: 18px; background: var(--preco); }
+
+  /* ============================================================== chart == */
+
+  .cartao-chart {
+    background: var(--chart);
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    padding: 11px 14px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-height: 640px;
+    height: 74vh;
+  }
+  @media (max-width: 900px) { .cartao-chart { height: auto; min-height: 0; } }
+
+  .chart-topo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .legenda {
+    display: flex; gap: 4px 15px; flex-wrap: wrap;
+    font-family: var(--f-num); font-size: 10.5px; color: var(--ink-2);
+    margin-right: auto;
+  }
+  .legenda span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .legenda i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .legenda .traco { width: 14px; height: 0; border-top: 2px dashed currentColor; border-radius: 0; }
+  .legenda .ponto { width: 14px; height: 0; border-top: 2px dotted currentColor; border-radius: 0; }
+
+  .btn {
+    appearance: none;
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+    color: var(--ink-2);
+    font-family: var(--f-num);
+    font-size: 10.5px;
     font-weight: 600;
     letter-spacing: 0.07em;
     text-transform: uppercase;
-    padding: 4px 9px;
-    border-radius: 2px;
-    color: var(--ink-2);
-    background: var(--surface-2);
-    border: 1px solid var(--line);
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: color 0.14s, border-color 0.14s;
   }
+  .btn:hover { color: var(--ink); border-color: var(--borda-forte); }
+  .btn[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
+  .btn:focus-visible { outline: 2px solid var(--call); outline-offset: 1px; }
 
-  .tab-val { border-collapse: collapse; width: 100%; font-size: 13px; }
-  .tab-val th, .tab-val td {
-    padding: 7px 10px;
-    text-align: right;
-    border-bottom: 1px solid var(--line);
-    font-family: var(--f-mono);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-  .tab-val th {
-    font-size: 10.5px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    font-weight: 500;
-  }
-  .tab-val td:first-child, .tab-val th:first-child { text-align: left; }
-  .tab-val tr.cfg td {
-    background: var(--surface-2);
-    font-weight: 600;
-    color: var(--ink);
+  .scroller { overflow-x: auto; overflow-y: hidden; flex: 1; min-height: 0; }
+  .scroller svg { display: block; height: 100%; width: auto; min-width: 100%; }
+  @media (max-width: 900px) { .scroller svg { height: auto; width: auto; } }
+
+  .g-grade { stroke: rgba(255,255,255,0.05); stroke-width: 1; }
+  .g-zero { stroke: rgba(255,255,255,0.32); stroke-width: 1.5; }
+  .g-eixo-rot { font-family: var(--f-num); font-size: 10px; fill: var(--ink-3); }
+  .g-strike { font-family: var(--f-num); font-size: 10px; fill: var(--ink-3); }
+  .g-strike.perto { fill: var(--ink-2); font-weight: 600; }
+  .g-titulo { font-family: var(--f-num); font-size: 10px; letter-spacing: 0.1em; fill: var(--ink-3); text-transform: uppercase; }
+  .g-valor { font-family: var(--f-num); font-size: 10px; font-weight: 600; fill: var(--ink); }
+  .g-etiq { font-family: var(--f-num); font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; }
+  .alvo { fill: transparent; cursor: crosshair; }
+  .faixa-foco { fill: rgba(255,255,255,0.045); pointer-events: none; }
+
+  .tooltip {
+    position: fixed;
+    z-index: 60;
+    pointer-events: none;
+    background: var(--card-2);
+    border: 1px solid var(--borda-forte);
+    border-radius: 8px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.65);
+    padding: 10px 12px;
+    font-family: var(--f-num);
     font-size: 11.5px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    line-height: 1.55;
+    color: var(--ink);
+    min-width: 214px;
   }
-  .tab-val .veredito-cel { color: var(--ink-3); font-size: 11.5px; }
+  .tooltip .t-cab { font-weight: 700; display: block; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid var(--borda); }
+  .tooltip .t-l { display: flex; justify-content: space-between; gap: 16px; }
+  .tooltip .t-l span:first-child { color: var(--ink-3); }
 
-  /* ------------------------------------------------------ definicoes */
+  /* ============================================================ tabela === */
 
-  .defs { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
-  .def { background: var(--surface); padding: 16px 17px; }
-  .def h3 {
-    font-family: var(--f-display);
-    font-size: 14.5px;
+  details { background: var(--card); border: 1px solid var(--borda); border-radius: 10px; }
+  summary {
+    cursor: pointer;
+    padding: 12px 15px;
+    font-family: var(--f-num);
+    font-size: 11px;
     font-weight: 600;
-    margin: 0 0 5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    list-style: none;
   }
-  .def p { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "\25B8  "; color: var(--ink-3); }
+  details[open] summary::before { content: "\25BE  "; }
+  summary:hover { color: var(--ink); }
+  summary:focus-visible { outline: 2px solid var(--call); outline-offset: -2px; }
+  details > .conteudo { padding: 0 15px 15px; overflow-x: auto; }
 
-  /* --------------------------------------------------------- rodape */
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--borda); font-family: var(--f-num); white-space: nowrap; }
+  th { font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+  td { color: var(--ink-2); }
+  td:first-child, th:first-child { text-align: left; color: var(--ink); }
+  tr.perto td { background: rgba(255,255,255,0.03); }
 
-  .premissas {
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--line-strong);
-    border-radius: 3px;
-    padding: 16px 18px;
-  }
-  .premissas h2 { font-size: 15px; margin-bottom: 8px; }
-  .premissas ul { margin: 0; padding-left: 19px; display: flex; flex-direction: column; gap: 7px; }
-  .premissas li { font-size: 13.5px; color: var(--ink-2); }
-  .premissas code {
-    font-family: var(--f-mono);
-    font-size: 12.5px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 2px;
+  /* ============================================================ metodo === */
+
+  .metodo { display: flex; flex-direction: column; gap: 18px; max-width: 920px; }
+  .metodo h2 { font-size: 17px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .metodo h3 { font-size: 13.5px; font-weight: 600; margin: 0 0 4px; }
+  .metodo p { margin: 0 0 10px; color: var(--ink-2); font-size: 13.5px; max-width: 74ch; }
+  .metodo p:last-child { margin-bottom: 0; }
+  .metodo strong { color: var(--ink); font-weight: 600; }
+  .bloco { background: var(--card); border: 1px solid var(--borda); border-radius: 10px; padding: 16px 18px; }
+  .defs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .metodo ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+  .metodo li { color: var(--ink-2); font-size: 13.5px; }
+  code {
+    font-family: var(--f-num);
+    font-size: 12px;
+    background: var(--card-2);
+    border: 1px solid var(--borda);
+    border-radius: 4px;
     padding: 0 4px;
     color: var(--ink);
   }
+  .tab-val { border-collapse: collapse; width: 100%; font-size: 12px; }
+  .tab-val tr.cfg td {
+    background: var(--card-2); color: var(--ink); font-size: 10.5px;
+    letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600;
+  }
 
-  .rodape {
-    font-size: 12.5px;
-    color: var(--ink-3);
-    border-top: 1px solid var(--line);
-    padding-top: 16px;
+  /* ============================================================ rodape === */
+
+  footer {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 13px 18px 26px;
+    border-top: 1px solid var(--borda);
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-family: var(--f-num);
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+
+  /* ============================================================ mobile === */
+
+  @media (max-width: 1100px) {
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .niveis { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 680px) {
+    main { padding: 12px 12px 30px; }
+    .kpis {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 10px;
+      padding-bottom: 4px;
+    }
+    .kpi { min-width: 78vw; scroll-snap-align: start; }
+    .meta { font-size: 10.5px; gap: 3px 11px; }
+    .meta .sep { display: none; }
+    .topbar-in { gap: 10px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -618,209 +475,195 @@
   }
 </style>
 
-<div class="wrap">
-
-  <header class="top">
-    <span class="eyebrow">Exposição a gama · opções de BOVA11 · pontos do mini índice</span>
-    <h1>Gama Exposed</h1>
-    <p class="sub">
-      Perfil de exposição a gama dos dealers, calculado a partir das posições em
-      aberto publicadas pela B3. Página informativa: apresenta os números e o que
-      cada um mede, sem sugerir operação.
-    </p>
-    <div class="stamp">
-      <span>Subjacente <b>BOVA11</b></span>
-      <span id="s-rotulo-preco">Fechamento</span> <b id="s-spot">—</b>
-      <span>Ibovespa <b id="s-ibov">—</b></span>
-      <span>Posições em aberto de <b id="s-data">—</b></span>
-      <span>Vol implícita <b id="s-vol">—</b></span>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="marca">Gama&nbsp;Exposed <em>BOVA11 &rarr; WIN</em></div>
+    <div class="meta">
+      <span><span id="s-rotulo-preco">Fechamento</span> <b id="s-spot">&mdash;</b></span>
+      <span class="sep"></span>
+      <span>Ibovespa <b id="s-ibov">&mdash;</b></span>
+      <span class="sep"></span>
+      <span>OI de <b id="s-data">&mdash;</b></span>
+      <span class="sep"></span>
+      <span>IV <b id="s-vol">&mdash;</b></span>
       <span class="vivo" id="s-vivo">fechamento</span>
     </div>
-  </header>
-
-  <section class="secao">
-    <h2>Vencimento</h2>
-    <p class="hint">
-      O gama de curto prazo é dominado pelo vencimento mais próximo. BOVA11 tem
-      séries semanais e mensais, e o perfil muda bastante entre elas.
-    </p>
-    <div class="venc" id="venc" role="group" aria-label="Selecionar vencimento"></div>
-  </section>
-
-  <section class="regime" aria-label="Gama no preço de referência">
-    <div class="regime-num">
-      <span class="label" id="s-label-gama">Gama líquido no preço de referência</span>
-      <span class="valor" id="s-gama">—</span>
-      <span class="unidade">de delta, por 1% de movimento do BOVA11</span>
-      <span class="tag" id="s-tag">—</span>
+    <div class="abas" role="tablist">
+      <button class="aba" role="tab" id="t-painel" aria-selected="true" aria-controls="aba-painel">Painel</button>
+      <button class="aba" role="tab" id="t-metodo" aria-selected="false" aria-controls="aba-metodo">Método</button>
     </div>
-    <div class="regime-txt">
-      <p>
-        O sinal indica <strong>em que direção o hedge dos dealers empurra o
-        preço</strong>, sob a hipótese padrão de que o dealer está comprado em
-        call e vendido em put.
-      </p>
-      <p>
-        <strong>Gama positivo:</strong> o hedge é contracíclico — vende na alta e
-        compra na queda —, o que tende a amortecer o movimento.
-        <strong>Gama negativo:</strong> o hedge é pró-cíclico e tende a amplificar.
-      </p>
-      <p>
-        É a leitura convencional do mecanismo. Se ela se confirma no
-        Ibovespa, é outra questão — veja <a href="#secao-validacao">Isto
-        funciona?</a> logo abaixo.
-      </p>
-    </div>
-  </section>
+  </div>
+</header>
 
-  <section class="secao">
-    <h2>Níveis</h2>
-    <p class="hint">
-      Cada nível aparece nas duas escalas: strike do BOVA11 em reais e o
-      equivalente em pontos do mini índice. As paredes são faixas de strikes, não
-      valores exatos — gama é contínuo, e a largura da faixa é a resolução real.
-    </p>
+<main>
+  <section class="painel" id="aba-painel" role="tabpanel" aria-labelledby="t-painel">
+
+    <div class="venc-linha">
+      <span class="rotulo">Vencimento</span>
+      <div class="venc" id="venc" role="group" aria-label="Selecionar vencimento"></div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
     <div class="niveis" id="niveis"></div>
-  </section>
 
-  <section class="secao">
-    <h2>Perfil por strike</h2>
-    <p class="hint">
-      Eixo horizontal em pontos do mini índice. Acima, gama líquido por strike;
-      abaixo, posições em aberto de call e put. As linhas verticais atravessam
-      os dois painéis.
-    </p>
-    <div class="cartao-grafico">
-      <div class="legenda">
-        <span class="k"><i style="background: var(--gama-pos)"></i>Gama positivo · amortece</span>
-        <span class="k"><i style="background: var(--gama-neg)"></i>Gama negativo · amplifica</span>
-        <span class="k"><i style="background: var(--call)"></i>Call em aberto</span>
-        <span class="k"><i style="background: var(--put)"></i>Put em aberto</span>
-        <span class="k"><span class="risco"></span>Preço</span>
-        <span class="k"><span class="risco tracejada" style="border-color: var(--flip)"></span>Virada de sinal</span>
+    <div class="cartao-chart">
+      <div class="chart-topo">
+        <div class="legenda">
+          <span><i style="background:var(--pos)"></i>Gama +</span>
+          <span><i style="background:var(--neg)"></i>Gama &minus;</span>
+          <span><i style="background:var(--call)"></i>Call OI</span>
+          <span><i style="background:var(--put)"></i>Put OI</span>
+          <span style="color:var(--preco)"><i class="traco"></i>Preço</span>
+          <span style="color:var(--virada)"><i class="traco"></i>Virada</span>
+          <span style="color:var(--parede-call)"><i class="ponto"></i>Parede call</span>
+          <span style="color:var(--parede-put)"><i class="ponto"></i>Parede put</span>
+        </div>
+        <button class="btn" id="btn-zoom" type="button" aria-pressed="false">Zoom ATM</button>
       </div>
       <div class="scroller">
         <svg id="grafico" role="img" aria-labelledby="g-desc"></svg>
         <p id="g-desc" hidden></p>
       </div>
     </div>
+
+    <details>
+      <summary>Ver números em tabela</summary>
+      <div class="conteudo"><table id="tabela"></table></div>
+    </details>
+
   </section>
 
-  <details>
-    <summary>Ver os números em tabela</summary>
-    <div class="scroller"><table id="tabela"></table></div>
-  </details>
+  <section class="metodo" id="aba-metodo" role="tabpanel" aria-labelledby="t-metodo" hidden>
 
-  <section class="secao" id="secao-validacao" hidden>
-    <h2>Isto funciona?</h2>
-    <p class="hint">
-      A pergunta que quase nenhum painel de gama responde: o regime prevê a
-      direção do movimento, ou só descreve o posicionamento? Testamos contra
-      o histórico.
-    </p>
-    <div class="validacao">
-      <div class="cabeca">
-        <span class="selo" id="v-selo">—</span>
-        <p class="veredito" id="v-veredito">—</p>
-        <span class="amostra" id="v-amostra">—</span>
+    <div>
+      <h2>Gama Exposed</h2>
+      <p>
+        Perfil de exposição a gama dos dealers, calculado a partir das posições
+        em aberto publicadas pela B3. Página informativa: apresenta os números e
+        o que cada um mede, sem sugerir operação.
+      </p>
+    </div>
+
+    <div class="bloco">
+      <h2>Como ler o sinal do gama</h2>
+      <p>
+        O sinal indica <strong>em que direção o hedge dos dealers empurra o
+        preço</strong>, sob a hipótese padrão de que o dealer está comprado em
+        call e vendido em put.
+      </p>
+      <p>
+        <strong>Gama positivo:</strong> o hedge é contracíclico — vende na alta
+        e compra na queda —, o que tende a amortecer o movimento.
+        <strong>Gama negativo:</strong> o hedge é pró-cíclico e tende a
+        amplificar.
+      </p>
+      <p>
+        É a leitura convencional do mecanismo. Se ela se confirma no Ibovespa, é
+        outra questão — veja <strong>Isto funciona?</strong> abaixo.
+      </p>
+    </div>
+
+    <div>
+      <h2>O que cada número mede</h2>
+      <div class="defs" style="margin-top:10px">
+        <div class="bloco">
+          <h3>Gama líquido</h3>
+          <p>Quanto a posição de delta dos dealers muda, em reais, quando o
+          BOVA11 se move 1%. Soma calls e puts do vencimento, com o sinal da
+          convenção de posicionamento.</p>
+        </div>
+        <div class="bloco">
+          <h3>Virada de sinal</h3>
+          <p>Strike em que o gama líquido cruza o zero, interpolado entre os
+          dois strikes vizinhos. Acima e abaixo dele o hedge dos dealers muda
+          de direção.</p>
+        </div>
+        <div class="bloco">
+          <h3>Parede de call e de put</h3>
+          <p>Faixa de strikes que concentra a maior exposição a gama de call
+          (acima do preço) e de put (abaixo). Definida por exposição, não por
+          posição em aberto bruta: posição grande e distante tem gama
+          irrelevante.</p>
+        </div>
+        <div class="bloco">
+          <h3>Posição em aberto</h3>
+          <p>Contratos em aberto por série, do campo <code>TtlPos</code> da B3 —
+          a soma das posições coberta, travada e descoberta.</p>
+        </div>
       </div>
-      <div class="corpo">
-        <div class="scroller"><table class="tab-val" id="v-tabela"></table></div>
-        <p id="v-metodo"></p>
+    </div>
+
+    <div id="bloco-validacao" hidden>
+      <h2>Isto funciona?</h2>
+      <p>
+        A pergunta que quase nenhum painel de gama responde: o regime prevê a
+        direção do movimento, ou só descreve o posicionamento? Testamos contra
+        o histórico.
+      </p>
+      <div class="bloco" style="margin-top:10px">
+        <span class="selo neutro" id="v-selo">&mdash;</span>
+        <h3 id="v-veredito" style="margin-top:10px;font-size:15px;line-height:1.4">&mdash;</h3>
+        <p class="rotulo" id="v-amostra" style="margin-bottom:12px">&mdash;</p>
+        <div style="overflow-x:auto"><table class="tab-val" id="v-tabela"></table></div>
+        <p id="v-metodo" style="margin-top:14px"></p>
         <p id="v-ressalva"></p>
       </div>
     </div>
-  </section>
 
-  <section class="secao">
-    <h2>O que cada número mede</h2>
-    <div class="defs">
-      <div class="def">
-        <h3>Gama líquido</h3>
-        <p>
-          Quanto a posição de delta dos dealers muda, em reais, quando o BOVA11
-          se move 1%. Soma calls e puts do vencimento, com o sinal da convenção
-          de posicionamento.
-        </p>
-      </div>
-      <div class="def">
-        <h3>Virada de sinal</h3>
-        <p>
-          Strike em que o gama líquido cruza o zero, interpolado entre os dois
-          strikes vizinhos. Acima e abaixo dele o hedge dos dealers muda de
-          direção.
-        </p>
-      </div>
-      <div class="def">
-        <h3>Parede de call e de put</h3>
-        <p>
-          Faixa de strikes que concentra a maior exposição a gama de call (acima
-          do preço) e de put (abaixo). Definida por exposição, não por posição em
-          aberto bruta: posição grande e distante tem gama irrelevante.
-        </p>
-      </div>
-      <div class="def">
-        <h3>Posição em aberto</h3>
-        <p>
-          Contratos em aberto por série, do campo <code>TtlPos</code> da B3 — a
-          soma das posições coberta, travada e descoberta.
-        </p>
-      </div>
+    <div class="bloco">
+      <h2>Procedência e premissas</h2>
+      <ul style="margin-top:10px">
+        <li>
+          Posições em aberto e cadastro de séries vêm dos arquivos públicos da
+          B3 (<code>DerivativesOpenPositionFile</code> e
+          <code>InstrumentsConsolidatedFile</code>). São dados de
+          <strong>fechamento do dia anterior</strong> — a B3 não publica posição
+          intradiária.
+        </li>
+        <li>
+          <code>contract_size = 1</code>: na B3, um contrato de opção sobre
+          BOVA11 equivale a <strong>uma cota</strong>. O &ldquo;× 100&rdquo; que
+          aparece em muito material é a convenção americana e não se aplica
+          aqui. O arquivo da B3 não declara o multiplicador —
+          <code>CtrctMltplr</code> e <code>AsstQtnQty</code> estão vazios em
+          todas as séries, e <code>AllcnRndLot</code> é o lote de negociação,
+          não o tamanho do contrato.
+        </li>
+        <li>
+          Volatilidade implícita resolvida <strong>série por série</strong> a
+          partir do <code>RefPric</code> da B3 — o preço de referência que a
+          bolsa publica para toda série, inclusive as que não negociaram. É a
+          marcação da bolsa, não necessariamente preço negociado.
+        </li>
+        <li>
+          Preço do BOVA11 e do Ibovespa são os <strong>fechamentos
+          oficiais</strong> do arquivo da B3, e a conversão para pontos de WIN é
+          a razão entre os dois. Durante o pregão o marcador de preço usa
+          cotação ao vivo, com atraso típico de 15 minutos; a curva de gama
+          permanece a de D&minus;1.
+        </li>
+        <li>
+          Taxa livre de risco 10,5% a.a. e dividend yield 3,5% a.a. entram como
+          parâmetros fixos, não observados.
+        </li>
+        <li>
+          Posição em aberto não informa quem está comprado e quem está vendido.
+          A convenção &ldquo;dealer comprado em call, vendido em put&rdquo; é
+          uma <strong>heurística</strong> sobre o outro lado do fluxo — é a
+          suposição em que todo painel de gama se apoia, e continua sendo
+          suposição.
+        </li>
+      </ul>
     </div>
+
   </section>
+</main>
 
-  <section class="premissas">
-    <h2>Procedência e premissas</h2>
-    <ul>
-      <li>
-        Posições em aberto e cadastro de séries vêm dos arquivos públicos da B3
-        (<code>DerivativesOpenPositionFile</code> e
-        <code>InstrumentsConsolidatedFile</code>). São dados de
-        <strong>fechamento do dia anterior</strong> — a B3 não publica posição
-        intradiária.
-      </li>
-      <li>
-        <code>contract_size = 1</code>: na B3, um contrato de opção sobre
-        BOVA11 equivale a <strong>uma cota</strong>. O &ldquo;× 100&rdquo; que
-        aparece em muito material é a convenção americana e não se aplica
-        aqui. O arquivo da B3 não declara o multiplicador —
-        <code>CtrctMltplr</code> e <code>AsstQtnQty</code> estão vazios em
-        todas as séries, e <code>AllcnRndLot</code> é o lote de negociação,
-        não o tamanho do contrato.
-      </li>
-      <li>
-        Volatilidade implícita resolvida <strong>série por série</strong> a
-        partir do <code>RefPric</code> da B3 — o preço de referência que a
-        bolsa publica para toda série, inclusive as que não negociaram. É a
-        marcação da bolsa, não necessariamente preço negociado: no arquivo
-        deste dia, 123 mil séries têm <code>RefPric</code> e apenas 18 mil
-        tiveram negócio. A cobertura efetiva aparece no topo da página.
-      </li>
-      <li>
-        Preço do BOVA11 e do Ibovespa são os <strong>fechamentos
-        oficiais</strong> do arquivo da B3, e a conversão para pontos de WIN é
-        a razão entre os dois. Aproximação válida perto do dinheiro.
-      </li>
-      <li>
-        Taxa livre de risco 10,5% a.a. e dividend yield 3,5% a.a. entram como
-        parâmetros fixos, não observados.
-      </li>
-      <li>
-        Posição em aberto não informa quem está comprado e quem está vendido. A
-        convenção &ldquo;dealer comprado em call, vendido em put&rdquo; é uma
-        <strong>heurística</strong> sobre o outro lado do fluxo — é a suposição em
-        que todo painel de gama se apoia, e continua sendo suposição.
-      </li>
-    </ul>
-  </section>
-
-  <footer class="rodape">
-    <span>Página informativa sobre dados públicos de mercado. Não constitui
-      recomendação, análise ou orientação de investimento.</span>
-    <span id="s-geracao">—</span>
-  </footer>
-
-</div>
+<footer>
+  <span>Dados públicos B3. Informativo. Não é recomendação.</span>
+  <span id="s-geracao">&mdash;</span>
+</footer>
 
 <div class="tooltip" id="tooltip" hidden></div>
 
@@ -828,8 +671,8 @@
   const DADOS = /*__DADOS__*/ null;
 
   const fmt0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
-  const fmt2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmt1 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const fmt2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   function brl(v) {
     const s = v < 0 ? "−" : "";
@@ -839,8 +682,10 @@
     if (a >= 1e3) return s + "R$ " + fmt0.format(a / 1e3) + " mil";
     return s + "R$ " + fmt0.format(a);
   }
-  function reais(v) { return "R$ " + fmt2.format(v); }
-  function pontos(v) { return fmt0.format(Math.round(v)); }
+  const reais = (v) => "R$ " + fmt2.format(v);
+  const pontos = (v) => fmt0.format(Math.round(v));
+  const pct = (x) => fmt1.format(x * 100) + "%";
+  const sinalPts = (d) => (d >= 0 ? "+" : "−") + pontos(Math.abs(d)) + " pts";
 
   const el = (id) => document.getElementById(id);
   const svgNS = "http://www.w3.org/2000/svg";
@@ -852,6 +697,7 @@
   }
 
   let atual = 0;
+  let zoomAtm = false;
 
   // Cotacao ao vivo. Enquanto for null, tudo usa o fechamento -- a curva de
   // gama nunca e ao vivo (a B3 so publica posicao apos o fechamento), mas o
@@ -859,8 +705,7 @@
   let vivo = null;
 
   const precoBova = () => (vivo && vivo.BOVA11) || DADOS.spot;
-  const pontosDoPreco = () =>
-    (vivo && vivo.IBOV) || DADOS.spot * DADOS.ratio_win;
+  const pontosDoPreco = () => (vivo && vivo.IBOV) || DADOS.spot * DADOS.ratio_win;
   const ratioAtual = () =>
     vivo && vivo.IBOV && vivo.BOVA11 ? vivo.IBOV / vivo.BOVA11 : DADOS.ratio_win;
 
@@ -876,20 +721,35 @@
     return ys[ys.length - 1];
   }
 
-  /* ------------------------------------------------------------ topo */
+  const indiceMaisProximo = (ks, alvo) =>
+    ks.reduce((m, k, j) => (Math.abs(k - alvo) < Math.abs(ks[m] - alvo) ? j : m), 0);
 
-  function pintarTopo() {
-    el("s-spot").textContent = reais(precoBova());
-    el("s-ibov").textContent = pontos(pontosDoPreco()) + " pts";
-    el("s-rotulo-preco").textContent = vivo ? "Preço agora" : "Fechamento";
-    el("s-data").textContent = DADOS.as_of.split("-").reverse().join("/");
-    el("s-geracao").textContent = "Gerado em " + DADOS.gerado_em + " a partir dos arquivos públicos da B3.";
+  /* Recorte de EXIBICAO no zoom ATM: nao recalcula nada, so escolhe quais
+     strikes do mesmo dataset entram no desenho. */
+  function fatia(v) {
+    if (!zoomAtm) return v;
+    const i = indiceMaisProximo(v.strikes, precoBova());
+    const a = Math.max(0, i - 8);
+    const b = Math.min(v.strikes.length, i + 9);
+    const rec = (arr) => arr.slice(a, b);
+    return {
+      ...v,
+      strikes: rec(v.strikes), gama: rec(v.gama),
+      gama_call: rec(v.gama_call), gama_put: rec(v.gama_put),
+      oi_call: rec(v.oi_call), oi_put: rec(v.oi_put),
+    };
   }
 
-  function pintarVol(v) {
+  /* ============================================================== topo == */
+
+  function pintarTopo(v) {
+    el("s-spot").textContent = reais(precoBova());
+    el("s-ibov").textContent = pontos(pontosDoPreco());
+    el("s-data").textContent = DADOS.as_of.split("-").reverse().join("/");
+    el("s-rotulo-preco").textContent = vivo ? "Preço agora" : "Fechamento";
+    el("s-geracao").textContent = "Gerado em " + DADOS.gerado_em;
     el("s-vol").textContent =
-      fmt2.format(v.vol_media * 100).replace(",00", "") + "% · " +
-      v.iv_resolvidas + "/" + v.iv_total + " séries";
+      fmt1.format(v.vol_media * 100) + "% · " + v.iv_resolvidas + "/" + v.iv_total;
   }
 
   function pintarChips() {
@@ -901,290 +761,386 @@
       b.type = "button";
       b.setAttribute("aria-pressed", String(i === atual));
       const d = v.data.split("-");
-      b.textContent = v.rotulo.split(" ")[0] + " · " + d[2] + "/" + d[1];
+      b.append(v.rotulo.split(" ")[0] + " · " + d[2] + "/" + d[1]);
+      const oi = document.createElement("span");
+      oi.className = "oi";
+      oi.textContent = fmt1.format(v.oi_total / 1e6) + " mi";
+      b.appendChild(oi);
       b.addEventListener("click", () => { atual = i; render(); });
       box.appendChild(b);
     });
   }
 
-  /* ---------------------------------------------------------- regime */
+  /* ============================================================== KPIs == */
 
-  function pintarRegime(v) {
-    const g = vivo ? interp(precoBova(), v.strikes, v.gama) : v.gama_no_spot;
-    const negativo = g < 0;
-    el("s-gama").textContent = brl(g);
-    // O rotulo tem de dizer a QUE preco o numero se refere: com cotacao ao
-    // vivo ele e reinterpolado a cada busca, sem ela e o do fechamento.
-    el("s-label-gama").textContent = vivo
-      ? "Gama líquido no preço agora"
-      : "Gama líquido no fechamento";
-    el("s-gama").style.color = negativo ? "var(--neg)" : "var(--pos)";
-    const tag = el("s-tag");
-    tag.textContent = negativo ? "Gama negativo" : "Gama positivo";
-    tag.className = "tag " + (negativo ? "is-neg" : "is-pos");
+  const AJUDA = {
+    gama: "<strong>Gama líquido.</strong> Quanto a posição de delta dos dealers muda, em reais, quando o BOVA11 se move 1%. Positivo: o hedge é contracíclico e tende a amortecer. Negativo: pró-cíclico, tende a amplificar.",
+    virada: "<strong>Virada de sinal.</strong> Strike em que o gama líquido cruza o zero, interpolado entre os dois strikes vizinhos. Acima e abaixo dele o hedge dos dealers muda de direção.",
+    call: "<strong>Parede de call.</strong> Faixa de strikes acima do preço que concentra a maior exposição a gama de call. Definida por exposição, não por posição em aberto bruta: posição grande e distante tem gama irrelevante.",
+    put: "<strong>Parede de put.</strong> Faixa de strikes abaixo do preço que concentra a maior exposição a gama de put. É uma faixa, não um valor exato — gama é contínuo, e a largura é a resolução real.",
+  };
+
+  function cartaoKpi({ chave, rotulo, valor, abaixo, cor, corValor, selo }) {
+    const c = document.createElement("div");
+    c.className = "kpi";
+    if (cor) c.style.setProperty("--faixa", cor);
+
+    const topo = document.createElement("div");
+    topo.className = "topo-kpi";
+    const r = document.createElement("span");
+    r.className = "rotulo";
+    r.textContent = rotulo;
+    const btn = document.createElement("button");
+    btn.className = "ajuda";
+    btn.type = "button";
+    btn.textContent = "?";
+    btn.setAttribute("aria-label", "O que é: " + rotulo);
+    topo.append(r, btn);
+
+    if (selo) {
+      const s = document.createElement("span");
+      s.className = "selo " + selo.classe;
+      s.textContent = selo.texto;
+      s.style.marginLeft = "auto";
+      topo.appendChild(s);
+    }
+
+    const val = document.createElement("div");
+    val.className = "valor";
+    val.textContent = valor;
+    if (corValor) val.style.color = corValor;
+
+    const sub = document.createElement("div");
+    sub.className = "abaixo";
+    sub.textContent = abaixo;
+
+    c.append(topo, val, sub);
+
+    btn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const jaAberto = c.querySelector(".popover");
+      document.querySelectorAll(".popover").forEach((p) => p.remove());
+      if (jaAberto) return;
+      const p = document.createElement("div");
+      p.className = "popover";
+      p.innerHTML = AJUDA[chave];
+      c.appendChild(p);
+    });
+
+    return c;
   }
 
-  /* ---------------------------------------------------------- niveis */
+  function textoZona(w) {
+    return w.inicio === w.fim
+      ? pontos(w.pico * ratioAtual())
+      : pontos(w.inicio * ratioAtual()) + "–" + pontos(w.fim * ratioAtual());
+  }
 
-  function linhaNivel(nome, sub, valorTxt, winTxt, desenho) {
-    const row = document.createElement("div");
-    row.className = "nivel";
-    const n = document.createElement("div");
-    n.className = "nome";
-    n.innerHTML = "<span></span><span></span>";
-    n.children[0].textContent = nome;
-    n.children[1].textContent = sub;
-    const barra = document.createElement("div");
-    barra.className = "barra";
-    barra.appendChild(Object.assign(document.createElement("div"), { className: "trilho" }));
-    desenho(barra);
+  function pintarKpis(v) {
+    const box = el("kpis");
+    box.textContent = "";
+
+    const g = vivo ? interp(precoBova(), v.strikes, v.gama) : v.gama_no_spot;
+    const neg = g < 0;
+
+    box.appendChild(cartaoKpi({
+      chave: "gama",
+      rotulo: vivo ? "Gama líquido · preço agora" : "Gama líquido · fechamento",
+      valor: brl(g),
+      abaixo: "de delta, por 1% de movimento",
+      cor: neg ? "var(--neg)" : "var(--pos)",
+      corValor: neg ? "var(--neg)" : "var(--pos)",
+      selo: { classe: neg ? "is-neg" : "is-pos", texto: neg ? "Negativo" : "Positivo" },
+    }));
+
+    if (v.flip !== null) {
+      const d = (v.flip - precoBova()) * ratioAtual();
+      box.appendChild(cartaoKpi({
+        chave: "virada",
+        rotulo: "Virada de sinal",
+        valor: pontos(v.flip * ratioAtual()),
+        abaixo: reais(v.flip) + "  ·  " + sinalPts(d) + " do preço",
+        cor: "var(--virada)",
+      }));
+    }
+
+    if (v.call_wall) {
+      box.appendChild(cartaoKpi({
+        chave: "call",
+        rotulo: "Parede de call",
+        valor: textoZona(v.call_wall),
+        abaixo: reais(v.call_wall.inicio) + "–" + reais(v.call_wall.fim) +
+          "  ·  " + brl(v.call_wall.exposicao),
+        cor: "var(--parede-call)",
+      }));
+    }
+
+    if (v.put_wall) {
+      box.appendChild(cartaoKpi({
+        chave: "put",
+        rotulo: "Parede de put",
+        valor: textoZona(v.put_wall),
+        abaixo: reais(v.put_wall.inicio) + "–" + reais(v.put_wall.fim) +
+          "  ·  " + brl(v.put_wall.exposicao),
+        cor: "var(--parede-put)",
+      }));
+    }
+  }
+
+  /* ======================================================= cards nivel == */
+
+  function par(rot, val) {
+    const d = document.createElement("div");
+    d.className = "dado";
+    const a = document.createElement("span");
+    a.className = "rotulo";
+    a.textContent = rot;
+    const b = document.createElement("span");
+    b.textContent = val;
+    d.append(a, b);
+    return d;
+  }
+
+  function cartaoNivel(titulo, cor, w, flip, v) {
     const c = document.createElement("div");
-    c.className = "cifra";
-    c.innerHTML = "<small>strike BOVA11</small>";
-    c.insertBefore(document.createTextNode(valorTxt), c.firstChild);
-    const w = document.createElement("div");
-    w.className = "win";
-    w.innerHTML = "<small>pontos WIN</small>";
-    w.insertBefore(document.createTextNode(winTxt), w.firstChild);
-    row.append(n, barra, c, w);
-    return row;
+    c.className = "nivel";
+
+    const ks = v.strikes;
+    const lo = ks[0], hi = ks[ks.length - 1];
+    const pos = (k) => Math.max(0, Math.min(100, ((k - lo) / (hi - lo)) * 100));
+
+    const cab = document.createElement("div");
+    cab.className = "cab";
+    const r = document.createElement("span");
+    r.className = "rotulo";
+    r.textContent = titulo;
+    const f = document.createElement("span");
+    f.className = "faixa-txt";
+    f.style.color = cor;
+    cab.append(r, f);
+
+    const trilho = document.createElement("div");
+    trilho.className = "trilho";
+    const base = document.createElement("div");
+    base.className = "base";
+    trilho.appendChild(base);
+
+    const dados = document.createElement("div");
+    dados.className = "dados";
+
+    if (w) {
+      f.textContent = w.inicio === w.fim
+        ? reais(w.pico)
+        : reais(w.inicio) + " – " + reais(w.fim);
+      const z = document.createElement("div");
+      z.className = "zona";
+      z.style.background = cor;
+      z.style.left = pos(w.inicio) + "%";
+      z.style.width = Math.max(pos(w.fim) - pos(w.inicio), 1.5) + "%";
+      const p = document.createElement("div");
+      p.className = "pico";
+      p.style.background = cor;
+      p.style.left = "calc(" + pos(w.pico) + "% - 1px)";
+      trilho.append(z, p);
+      dados.append(
+        par("Pontos WIN", textoZona(w)),
+        par("Distância", sinalPts((w.pico - precoBova()) * ratioAtual())),
+        par("Exposição na zona", brl(w.exposicao)),
+      );
+    } else if (flip !== null && flip !== undefined) {
+      f.textContent = reais(flip);
+      const p = document.createElement("div");
+      p.className = "pico";
+      p.style.background = cor;
+      p.style.left = "calc(" + pos(flip) + "% - 1px)";
+      trilho.appendChild(p);
+      const lado = flip > precoBova() ? "acima do preço" : "abaixo do preço";
+      dados.append(
+        par("Pontos WIN", pontos(flip * ratioAtual())),
+        par("Distância", sinalPts((flip - precoBova()) * ratioAtual())),
+        par("Posição", lado),
+      );
+    } else {
+      f.textContent = "indeterminado";
+      f.style.color = "var(--ink-3)";
+    }
+
+    const aqui = document.createElement("div");
+    aqui.className = "aqui";
+    aqui.style.left = "calc(" + pos(precoBova()) + "% - 1px)";
+    trilho.appendChild(aqui);
+
+    c.append(cab, trilho, dados);
+    return c;
   }
 
   function pintarNiveis(v) {
     const box = el("niveis");
     box.textContent = "";
-
-    const ks = v.strikes;
-    const lo = ks[0], hi = ks[ks.length - 1];
-    const pos = (k) => ((k - lo) / (hi - lo)) * 100;
-
-    const marcaSpot = (barra) => {
-      const m = document.createElement("div");
-      m.className = "marca";
-      m.style.left = "calc(" + pos(precoBova()) + "% - 1px)";
-      m.title = "preço de referência";
-      barra.appendChild(m);
-    };
-
-    if (v.call_wall) {
-      const cw = v.call_wall;
-      box.appendChild(linhaNivel(
-        "Parede de call", "faixa acima do preço",
-        cw.inicio === cw.fim ? reais(cw.pico) : reais(cw.inicio) + " – " + reais(cw.fim),
-        cw.inicio === cw.fim ? pontos(cw.pico * ratioAtual())
-          : pontos(cw.inicio * ratioAtual()) + " – " + pontos(cw.fim * ratioAtual()),
-        (barra) => {
-          const f = document.createElement("div");
-          f.className = "faixa";
-          f.style.left = pos(cw.inicio) + "%";
-          f.style.width = Math.max(pos(cw.fim) - pos(cw.inicio), 1.2) + "%";
-          f.style.background = "var(--pos)";
-          barra.appendChild(f);
-          marcaSpot(barra);
-        }
-      ));
-    }
-
-    if (v.flip !== null) {
-      const dist = v.flip - precoBova();
-      box.appendChild(linhaNivel(
-        "Virada de sinal",
-        (dist >= 0 ? "+" : "−") + fmt2.format(Math.abs(dist)) +
-          (vivo ? " do preço agora" : " do fechamento"),
-        reais(v.flip), pontos(v.flip * ratioAtual()),
-        (barra) => {
-          const p = document.createElement("div");
-          p.className = "ponto";
-          p.style.left = "calc(" + pos(v.flip) + "% - 1.5px)";
-          p.style.background = "var(--ink-2)";
-          barra.appendChild(p);
-          marcaSpot(barra);
-        }
-      ));
-    }
-
-    if (v.put_wall) {
-      const pw = v.put_wall;
-      box.appendChild(linhaNivel(
-        "Parede de put", "faixa abaixo do preço",
-        pw.inicio === pw.fim ? reais(pw.pico) : reais(pw.inicio) + " – " + reais(pw.fim),
-        pw.inicio === pw.fim ? pontos(pw.pico * ratioAtual())
-          : pontos(pw.inicio * ratioAtual()) + " – " + pontos(pw.fim * ratioAtual()),
-        (barra) => {
-          const f = document.createElement("div");
-          f.className = "faixa";
-          f.style.left = pos(pw.inicio) + "%";
-          f.style.width = Math.max(pos(pw.fim) - pos(pw.inicio), 1.2) + "%";
-          f.style.background = "var(--neg)";
-          barra.appendChild(f);
-          marcaSpot(barra);
-        }
-      ));
-    }
+    box.append(
+      cartaoNivel("Parede de call · acima do preço", "var(--parede-call)", v.call_wall, null, v),
+      cartaoNivel("Virada de sinal", "var(--virada)", null, v.flip, v),
+      cartaoNivel("Parede de put · abaixo do preço", "var(--parede-put)", v.put_wall, null, v),
+    );
   }
 
-  /* --------------------------------------------------------- grafico */
+  /* ============================================================= chart == */
 
   const tip = el("tooltip");
   function mostrarTip(ev, html) {
     tip.innerHTML = html;
     tip.hidden = false;
     const r = tip.getBoundingClientRect();
-    let x = ev.clientX + 14, y = ev.clientY - r.height / 2;
-    if (x + r.width > window.innerWidth - 8) x = ev.clientX - r.width - 14;
+    let x = ev.clientX + 16, y = ev.clientY - r.height / 2;
+    if (x + r.width > window.innerWidth - 8) x = ev.clientX - r.width - 16;
     y = Math.max(8, Math.min(y, window.innerHeight - r.height - 8));
     tip.style.left = x + "px";
     tip.style.top = y + "px";
   }
-  function esconderTip() { tip.hidden = true; }
+  const esconderTip = () => { tip.hidden = true; };
 
-  function pintarGrafico(v) {
+  function pintarGrafico(vBruto) {
+    const v = fatia(vBruto);
     const svg = el("grafico");
     svg.textContent = "";
 
     const ks = v.strikes;
     const n = ks.length;
+    if (n < 2) return;
 
-    // Duas faixas empilhadas compartilhando o eixo horizontal.
-    const passo = 34;
-    const margE = 62, margD = 16;
-    const topoRot = 60;
-    const hGama = 240, hVao = 42, hOi = 170, hEixo = 48;
+    const passo = zoomAtm ? 54 : 38;
+    const margE = 66, margD = 20;
+    const topoRot = 68;
+    const hGama = 380, hVao = 34, hOi = 190, hEixo = 52;
     const W = margE + n * passo + margD;
     const H = topoRot + hGama + hVao + hOi + hEixo;
 
     svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-    svg.setAttribute("width", W);
-    svg.setAttribute("height", H);
+    svg.setAttribute("preserveAspectRatio", "xMinYMid meet");
 
-    const yGama0 = topoRot;
-    const yGama1 = topoRot + hGama;
-    const yOi0 = yGama1 + hVao;
-    const yOi1 = yOi0 + hOi;
+    const defs = mk("defs", {});
+    const glow = mk("filter", { id: "glow", x: "-45%", y: "-45%", width: "190%", height: "190%" });
+    glow.appendChild(mk("feDropShadow", { dx: "0", dy: "0", stdDeviation: "3", "flood-opacity": "0.55" }));
+    defs.appendChild(glow);
+    svg.appendChild(defs);
+
+    const yG0 = topoRot, yG1 = topoRot + hGama;
+    const yO0 = yG1 + hVao, yO1 = yO0 + hOi;
 
     const xDe = (i) => margE + i * passo + passo / 2;
-    const xPreco = (pr) => {
+    const xPreco = (p) => {
       const lo = ks[0], hi = ks[n - 1];
-      const frac = (pr - lo) / (hi - lo);
-      return margE + (frac * (n - 1) + 0.5) * passo;
+      return margE + (((p - lo) / (hi - lo)) * (n - 1) + 0.5) * passo;
     };
 
     const maxG = Math.max(...v.gama.map(Math.abs), 1);
-    const zeroG = yGama0 + hGama / 2;
-    const meiaAltura = hGama / 2 - 22;
-    const yGama = (g) => zeroG - (g / maxG) * meiaAltura;
+    const zeroG = yG0 + hGama / 2;
+    const meia = hGama / 2 - 26;
+    const yGama = (g) => zeroG - (g / maxG) * meia;
 
     const maxOi = Math.max(...v.oi_call, ...v.oi_put, 1);
-    const yOi = (q) => yOi1 - (q / maxOi) * (hOi - 14);
+    const yOi = (q) => yO1 - (q / maxOi) * (hOi - 16);
 
-    // grade e escala do painel de gama
-    [-1, -0.5, 0, 0.5, 1].forEach((f) => {
-      const y = zeroG - f * meiaAltura;
-      svg.appendChild(mk("line", {
-        x1: margE, y1: y, x2: W - margD, y2: y,
-        class: f === 0 ? "g-eixo" : "g-grade"
-      }));
-      svg.appendChild(mk("text", {
-        x: margE - 8, y: y + 3.5, class: "g-rotulo", "text-anchor": "end"
-      }, f === 0 ? "0" : fmt1.format(f * maxG / 1e6)));
+    // Spotlight: +/-4 strikes do preco em opacidade cheia, o resto atenuado.
+    const iPreco = indiceMaisProximo(ks, precoBova());
+    const perto = (i) => Math.abs(i - iPreco) <= 4;
+
+    [-1, -0.5, 0.5, 1].forEach((f) => {
+      const y = zeroG - f * meia;
+      svg.appendChild(mk("line", { x1: margE, y1: y, x2: W - margD, y2: y, class: "g-grade" }));
+      svg.appendChild(mk("text", { x: margE - 9, y: y + 3.5, class: "g-eixo-rot", "text-anchor": "end" },
+        fmt1.format((f * maxG) / 1e6)));
     });
+    svg.appendChild(mk("line", { x1: margE, y1: zeroG, x2: W - margD, y2: zeroG, class: "g-zero" }));
+    svg.appendChild(mk("text", { x: margE - 9, y: zeroG + 3.5, class: "g-eixo-rot", "text-anchor": "end" }, "0"));
 
-    // grade e escala do painel de posicoes
-    [0, 0.5, 1].forEach((f) => {
-      const y = yOi1 - f * (hOi - 14);
-      svg.appendChild(mk("line", {
-        x1: margE, y1: y, x2: W - margD, y2: y,
-        class: f === 0 ? "g-eixo" : "g-grade"
-      }));
-      svg.appendChild(mk("text", {
-        x: margE - 8, y: y + 3.5, class: "g-rotulo", "text-anchor": "end"
-      }, f === 0 ? "0" : fmt1.format(f * maxOi / 1e6)));
+    [0.5, 1].forEach((f) => {
+      const y = yO1 - f * (hOi - 16);
+      svg.appendChild(mk("line", { x1: margE, y1: y, x2: W - margD, y2: y, class: "g-grade" }));
+      svg.appendChild(mk("text", { x: margE - 9, y: y + 3.5, class: "g-eixo-rot", "text-anchor": "end" },
+        fmt1.format((f * maxOi) / 1e6)));
     });
+    svg.appendChild(mk("line", { x1: margE, y1: yO1, x2: W - margD, y2: yO1, class: "g-zero" }));
 
-    svg.appendChild(mk("text", { x: margE, y: yGama0 - 14, class: "g-titulo" },
-      "Gama liquido \u2014 R$ milhoes por 1% de movimento".replace("liquido", "líquido").replace("milhoes", "milhões")));
-    svg.appendChild(mk("text", { x: margE, y: yOi0 - 14, class: "g-titulo" },
-      "Posi\u00e7\u00f5es em aberto \u2014 milh\u00f5es de contratos"));
+    svg.appendChild(mk("text", { x: margE, y: yG0 - 16, class: "g-titulo" },
+      "Gama líquido — R$ milhões por 1% de movimento"));
+    svg.appendChild(mk("text", { x: margE, y: yO0 - 12, class: "g-titulo" },
+      "Posições em aberto — milhões de contratos"));
 
-    // ------------------------------------------------------- barras
+    const a0 = Math.max(0, iPreco - 4), a1 = Math.min(n - 1, iPreco + 4);
+    svg.appendChild(mk("rect", {
+      x: xDe(a0) - passo / 2, y: yG0,
+      width: passo * (a1 - a0 + 1), height: yO1 - yG0,
+      class: "faixa-foco", rx: 6,
+    }));
+
     for (let i = 0; i < n; i++) {
       const x = xDe(i);
       const g = v.gama[i];
-      const larguraG = passo - 10;
+      const op = perto(i) ? 1 : 0.5;
+      const larg = passo - (zoomAtm ? 16 : 12);
 
-      const yTopo = g >= 0 ? yGama(g) : zeroG;
-      const alturaG = Math.max(Math.abs(yGama(g) - zeroG), 1);
+      const barra = mk("rect", {
+        x: x - larg / 2, y: g >= 0 ? yGama(g) : zeroG,
+        width: larg, height: Math.max(Math.abs(yGama(g) - zeroG), 1.5),
+        fill: g >= 0 ? "var(--pos)" : "var(--neg)",
+        "fill-opacity": op, rx: 2,
+      });
+      if (perto(i)) barra.setAttribute("filter", "url(#glow)");
+      svg.appendChild(barra);
+
+      // Rotulo so onde informa: barra relevante ou vizinha do preco.
+      const mi = g / 1e6;
+      if (Math.abs(mi) >= 1 || perto(i)) {
+        svg.appendChild(mk("text", {
+          x, y: g >= 0 ? yGama(g) - 7 : yGama(g) + 14,
+          class: "g-valor", "text-anchor": "middle",
+          "fill-opacity": perto(i) ? 1 : 0.6,
+        }, Math.abs(mi) < 0.05 ? "0" : fmt1.format(mi)));
+      }
+
+      const lo = (passo - (zoomAtm ? 18 : 14)) / 2;
+      const hc = Math.max(yO1 - yOi(v.oi_call[i]), 1);
       svg.appendChild(mk("rect", {
-        x: x - larguraG / 2, y: yTopo,
-        width: larguraG, height: alturaG,
-        fill: g >= 0 ? "var(--gama-pos)" : "var(--gama-neg)",
-        rx: 2
+        x: x - lo - 1, y: yO1 - hc, width: lo, height: hc,
+        fill: "var(--call)", "fill-opacity": op, rx: 2,
+      }));
+      const hp = Math.max(yO1 - yOi(v.oi_put[i]), 1);
+      svg.appendChild(mk("rect", {
+        x: x + 1, y: yO1 - hp, width: lo, height: hp,
+        fill: "var(--put)", "fill-opacity": op, rx: 2,
       }));
 
-      const emMi = g / 1e6;
       svg.appendChild(mk("text", {
-        x: x,
-        y: g >= 0 ? yGama(g) - 6 : yGama(g) + 13,
-        class: "g-valor", "text-anchor": "middle"
-      }, Math.abs(emMi) < 0.05 ? "0" : fmt1.format(emMi)));
-
-      const larguraOi = (passo - 12) / 2;
-      const hc = Math.max(yOi1 - yOi(v.oi_call[i]), 0.8);
-      svg.appendChild(mk("rect", {
-        x: x - larguraOi - 1, y: yOi1 - hc,
-        width: larguraOi, height: hc,
-        fill: "var(--call)", rx: 1.5
-      }));
-      const hp = Math.max(yOi1 - yOi(v.oi_put[i]), 0.8);
-      svg.appendChild(mk("rect", {
-        x: x + 1, y: yOi1 - hp,
-        width: larguraOi, height: hp,
-        fill: "var(--put)", rx: 1.5
-      }));
-
-      const win = Math.round(ks[i] * ratioAtual());
-      svg.appendChild(mk("text", {
-        x: x, y: yOi1 + (i % 2 === 0 ? 16 : 29),
-        class: "g-strike", "text-anchor": "middle"
-      }, fmt0.format(win)));
+        x, y: yO1 + (i % 2 === 0 ? 18 : 32),
+        class: "g-strike" + (perto(i) ? " perto" : ""), "text-anchor": "middle",
+      }, pontos(ks[i] * ratioAtual())));
     }
 
-    // -------------------------------------------- linhas de referencia
-    const linhas = [];
-    linhas.push({
-      p: precoBova(), cor: "var(--ink)", tracejado: "6 4",
-      rot: "PRE\u00c7O " + fmt0.format(Math.round(pontosDoPreco()))
-    });
+    const linhas = [{
+      p: precoBova(), cor: "var(--preco)", dash: "7 5",
+      rot: "PREÇO " + pontos(pontosDoPreco()),
+    }];
     if (v.flip !== null) {
-      linhas.push({
-        p: v.flip, cor: "var(--flip)", tracejado: "7 3 2 3",
-        rot: "VIRADA " + fmt0.format(Math.round(v.flip * ratioAtual()))
-      });
+      linhas.push({ p: v.flip, cor: "var(--virada)", dash: "7 5",
+        rot: "VIRADA " + pontos(v.flip * ratioAtual()) });
     }
     if (v.call_wall) {
-      linhas.push({
-        p: v.call_wall.pico, cor: "var(--call)", tracejado: "2 3",
-        rot: "CALL " + fmt0.format(Math.round(v.call_wall.pico * ratioAtual())),
-        faixa: v.call_wall
-      });
+      linhas.push({ p: v.call_wall.pico, cor: "var(--parede-call)", dash: "2 4",
+        rot: "CALL " + pontos(v.call_wall.pico * ratioAtual()), zona: v.call_wall });
     }
     if (v.put_wall) {
-      linhas.push({
-        p: v.put_wall.pico, cor: "var(--put)", tracejado: "2 3",
-        rot: "PUT " + fmt0.format(Math.round(v.put_wall.pico * ratioAtual())),
-        faixa: v.put_wall
-      });
+      linhas.push({ p: v.put_wall.pico, cor: "var(--parede-put)", dash: "2 4",
+        rot: "PUT " + pontos(v.put_wall.pico * ratioAtual()), zona: v.put_wall });
     }
 
-    // faixas das paredes atras das linhas
     linhas.forEach((L) => {
-      if (!L.faixa || L.faixa.inicio === L.faixa.fim) return;
-      const x1 = xPreco(Math.max(L.faixa.inicio, ks[0]));
-      const x2 = xPreco(Math.min(L.faixa.fim, ks[n - 1]));
+      if (!L.zona || L.zona.inicio === L.zona.fim) return;
+      const a = xPreco(Math.max(L.zona.inicio, ks[0]));
+      const b = xPreco(Math.min(L.zona.fim, ks[n - 1]));
       svg.appendChild(mk("rect", {
-        x: Math.min(x1, x2), y: yGama0,
-        width: Math.abs(x2 - x1), height: yOi1 - yGama0,
-        fill: L.cor, "fill-opacity": "0.08"
+        x: Math.min(a, b), y: yG0, width: Math.abs(b - a), height: yO1 - yG0,
+        fill: L.cor, "fill-opacity": "0.07",
       }));
     });
 
@@ -1192,70 +1148,67 @@
       if (L.p < ks[0] || L.p > ks[n - 1]) return;
       const x = xPreco(L.p);
       svg.appendChild(mk("line", {
-        x1: x, y1: yGama0 - 6, x2: x, y2: yOi1 + 6,
-        stroke: L.cor, "stroke-width": 1.75,
-        "stroke-dasharray": L.tracejado
+        x1: x, y1: yG0 - 8, x2: x, y2: yO1 + 8,
+        stroke: L.cor, "stroke-width": 2, "stroke-dasharray": L.dash, "stroke-opacity": "0.92",
       }));
-      const yEt = 15 + idx * 14;
-      const larg = L.rot.length * 6.2 + 12;
-      const cx = Math.min(Math.max(x, larg / 2 + 2), W - larg / 2 - 2);
-      svg.appendChild(mk("rect", {
-        x: cx - larg / 2, y: yEt - 10,
-        width: larg, height: 14, fill: L.cor, rx: 2
-      }));
-      svg.appendChild(mk("text", {
-        x: cx, y: yEt, class: "g-etiqueta", "text-anchor": "middle"
-      }, L.rot));
+      const y = 17 + idx * 15;
+      const larg = L.rot.length * 6.3 + 14;
+      const cx = Math.min(Math.max(x, margE + larg / 2), W - larg / 2 - 4);
+      svg.appendChild(mk("rect", { x: cx - larg / 2, y: y - 11, width: larg, height: 15, fill: L.cor, rx: 3 }));
+      svg.appendChild(mk("text", { x: cx, y, class: "g-etiq", "text-anchor": "middle", fill: "#0b0e14" }, L.rot));
     });
 
-    // ------------------------------------------------ alvos de hover
     for (let i = 0; i < n; i++) {
       const x = xDe(i);
       const alvo = mk("rect", {
-        x: x - passo / 2, y: yGama0, width: passo, height: yOi1 - yGama0,
-        class: "barra-alvo", tabindex: "0", role: "button",
-        "aria-label": "strike " + fmt2.format(ks[i])
+        x: x - passo / 2, y: yG0, width: passo, height: yO1 - yG0,
+        class: "alvo", tabindex: "0", role: "button",
+        "aria-label": "strike " + fmt2.format(ks[i]),
       });
       const conteudo =
-        "<span class='t-strike'>WIN " + pontos(ks[i] * ratioAtual()) +
-        " &middot; strike " + reais(ks[i]) + "</span>" +
-        "<span class='t-linha'><span>Gama</span><span>" + brl(v.gama[i]) + "</span></span>" +
-        "<span class='t-linha'><span>Call em aberto</span><span>" + fmt0.format(v.oi_call[i]) + "</span></span>" +
-        "<span class='t-linha'><span>Put em aberto</span><span>" + fmt0.format(v.oi_put[i]) + "</span></span>";
+        "<span class='t-cab'>WIN " + pontos(ks[i] * ratioAtual()) + "</span>" +
+        "<span class='t-l'><span>Strike</span><span>" + reais(ks[i]) + "</span></span>" +
+        "<span class='t-l'><span>Gama</span><span>" + brl(v.gama[i]) + "</span></span>" +
+        "<span class='t-l'><span>Call em aberto</span><span>" + fmt0.format(v.oi_call[i]) + "</span></span>" +
+        "<span class='t-l'><span>Put em aberto</span><span>" + fmt0.format(v.oi_put[i]) + "</span></span>" +
+        "<span class='t-l'><span>Do preço</span><span>" +
+          sinalPts((ks[i] - precoBova()) * ratioAtual()) + "</span></span>";
       alvo.addEventListener("mousemove", (ev) => mostrarTip(ev, conteudo));
       alvo.addEventListener("mouseleave", esconderTip);
       alvo.addEventListener("focus", (ev) => {
         const r = ev.target.getBoundingClientRect();
-        mostrarTip({ clientX: r.left + r.width / 2, clientY: r.top + 40 }, conteudo);
+        mostrarTip({ clientX: r.left + r.width / 2, clientY: r.top + 60 }, conteudo);
       });
       alvo.addEventListener("blur", esconderTip);
       svg.appendChild(alvo);
     }
 
     svg.appendChild(mk("text", {
-      x: (margE + W - margD) / 2, y: H - 9,
-      class: "g-titulo", "text-anchor": "middle"
-    }, "Pontos do mini \u00edndice (WIN)"));
+      x: (margE + W - margD) / 2, y: H - 12, class: "g-titulo", "text-anchor": "middle",
+    }, "Pontos do mini índice (WIN)"));
 
     el("g-desc").textContent =
-      "Gama por strike no vencimento " + v.data + ". Gama liquido no preco: " + brl(v.gama_no_spot) + ".";
+      "Gama por strike no vencimento " + v.data + ". Gama no preço: " + brl(v.gama_no_spot) + ".";
   }
 
-  /* --------------------------------------------------------- tabela */
+  /* ============================================================ tabela == */
 
   function pintarTabela(v) {
     const t = el("tabela");
     t.textContent = "";
     const thead = document.createElement("thead");
     const tr = document.createElement("tr");
-    ["Strike (R$)", "Pontos WIN", "Gama líquido", "Gama call", "Gama put", "Call aberto", "Put aberto"]
+    ["Pontos WIN", "Strike", "Gama líquido", "Gama call", "Gama put", "Call aberto", "Put aberto"]
       .forEach((h) => { const th = document.createElement("th"); th.textContent = h; tr.appendChild(th); });
     thead.appendChild(tr);
     t.appendChild(thead);
+
+    const iPreco = indiceMaisProximo(v.strikes, precoBova());
     const tb = document.createElement("tbody");
     v.strikes.forEach((k, i) => {
       const r = document.createElement("tr");
-      [fmt2.format(k), pontos(k * ratioAtual()), brl(v.gama[i]), brl(v.gama_call[i]),
+      if (Math.abs(i - iPreco) <= 4) r.className = "perto";
+      [pontos(k * ratioAtual()), fmt2.format(k), brl(v.gama[i]), brl(v.gama_call[i]),
        brl(v.gama_put[i]), fmt0.format(v.oi_call[i]), fmt0.format(v.oi_put[i])]
         .forEach((c) => { const td = document.createElement("td"); td.textContent = c; r.appendChild(td); });
       tb.appendChild(r);
@@ -1263,27 +1216,22 @@
     t.appendChild(tb);
   }
 
-  /* ------------------------------------------------------ validacao */
+  /* ========================================================= validacao == */
 
   function pintarValidacao() {
     const v = DADOS.validacao;
-    const secao = el("secao-validacao");
-    if (!v) { secao.hidden = true; return; }
-    secao.hidden = false;
+    const bloco = el("bloco-validacao");
+    if (!v) { bloco.hidden = true; return; }
+    bloco.hidden = false;
 
     const algum = v.configuracoes.some((c) => c.grupos.some((g) => g.significativa));
-
     el("v-selo").textContent = algum ? "resultado misto" : "sem efeito detectado";
     el("v-veredito").textContent = algum
-      ? "Em " + v.dias + " dias testados, ao menos um regime mostrou diferença " +
-        "contra o baseline. Veja a tabela e a ressalva abaixo."
-      : "Em " + v.dias + " dias de pregão testados, o regime de gama não " +
-        "apresentou diferença estatisticamente significativa na taxa de " +
-        "continuação de movimento contra o baseline do mesmo período.";
+      ? "Em " + v.dias + " dias testados, ao menos um regime mostrou diferença contra o baseline. Veja a tabela e a ressalva abaixo."
+      : "Em " + v.dias + " dias de pregão testados, o regime de gama não apresentou diferença estatisticamente significativa na taxa de continuação de movimento contra o baseline do mesmo período.";
     el("v-amostra").textContent =
       v.periodo_inicio.split("-").reverse().join("/") + " a " +
-      v.periodo_fim.split("-").reverse().join("/") + " · " +
-      v.fonte_intradiaria;
+      v.periodo_fim.split("-").reverse().join("/") + " · " + v.fonte_intradiaria;
 
     const t = el("v-tabela");
     t.textContent = "";
@@ -1305,70 +1253,39 @@
       tb.appendChild(cab);
 
       const base = document.createElement("tr");
-      [["baseline (todos os eventos)", "l"], [fmt0.format(c.eventos), "r"],
-       pct(c.baseline), "—", "—", ""].forEach((x) => {
-        const cel = document.createElement("td");
-        cel.textContent = Array.isArray(x) ? x[0] : x;
-        base.appendChild(cel);
-      });
+      ["baseline (todos os eventos)", fmt0.format(c.eventos), pct(c.baseline), "—", "—", ""]
+        .forEach((x) => { const cel = document.createElement("td"); cel.textContent = x; base.appendChild(cel); });
       tb.appendChild(base);
 
       c.grupos.forEach((g) => {
         const r = document.createElement("tr");
-        const cels = [
-          g.nome, fmt0.format(g.n), pct(g.taxa),
-          (g.dif >= 0 ? "+" : "") + pct(g.dif),
-          "[" + (g.dif_ic[0] >= 0 ? "+" : "") + pct(g.dif_ic[0]) + " a " +
-            (g.dif_ic[1] >= 0 ? "+" : "") + pct(g.dif_ic[1]) + "]",
-          g.significativa ? "significativa" : "não significativa",
-        ];
-        cels.forEach((x, i) => {
-          const cel = document.createElement("td");
-          cel.textContent = x;
-          if (i === 5) cel.className = "veredito-cel";
-          r.appendChild(cel);
-        });
+        [g.nome, fmt0.format(g.n), pct(g.taxa),
+         (g.dif >= 0 ? "+" : "") + pct(g.dif),
+         "[" + (g.dif_ic[0] >= 0 ? "+" : "") + pct(g.dif_ic[0]) + " a " +
+           (g.dif_ic[1] >= 0 ? "+" : "") + pct(g.dif_ic[1]) + "]",
+         g.significativa ? "significativa" : "não significativa",
+        ].forEach((x) => { const cel = document.createElement("td"); cel.textContent = x; r.appendChild(cel); });
         tb.appendChild(r);
       });
     });
     t.appendChild(tb);
 
     el("v-metodo").innerHTML =
-      "<strong>Método.</strong> Para cada barra de 5 minutos, mede-se se o " +
-      "movimento das barras anteriores prosseguiu no horizonte. O perfil de " +
-      "gama de cada dia vem do arquivo da B3 do <strong>dia anterior</strong>, " +
-      "porque a posição em aberto do próprio dia só é publicada após o " +
-      "fechamento — usá-la seria olhar o futuro. A comparação é contra o " +
-      "baseline incondicional do mesmo período: sem ela, uma taxa de 51% " +
-      "poderia ser apenas momentum. O intervalo de confiança vem de " +
-      "reamostragem de dias inteiros, porque janelas consecutivas se " +
-      "sobrepõem.";
+      "<strong>Método.</strong> Para cada barra de 5 minutos, mede-se se o movimento das barras anteriores prosseguiu no horizonte. O perfil de gama de cada dia vem do arquivo da B3 do <strong>dia anterior</strong>, porque a posição em aberto do próprio dia só é publicada após o fechamento — usá-la seria olhar o futuro. A comparação é contra o baseline incondicional do mesmo período: sem ela, uma taxa de 51% poderia ser apenas momentum. O intervalo de confiança vem de reamostragem de dias inteiros, porque janelas consecutivas se sobrepõem.";
 
     el("v-ressalva").innerHTML =
-      "<strong>Ressalvas.</strong> Foram " + v.comparacoes + " comparações a " +
-      "95% de confiança, das quais " + v.significativas + " deu significativa — " +
-      "aproximadamente o que o acaso produz nesse número de testes, e no caso " +
-      "observado o sinal apontava na direção contrária à teoria. A amostra de " +
-      v.dias + " dias só distingue efeitos maiores que cerca de 3 pontos " +
-      "percentuais: um efeito real menor que isso seria invisível aqui. O " +
-      "intradiário usado é do Ibovespa à vista, não do futuro, e apenas o " +
-      "vencimento mais curto entra no perfil.";
+      "<strong>Ressalvas.</strong> Foram " + v.comparacoes + " comparações a 95% de confiança, das quais " +
+      v.significativas + " deu significativa — aproximadamente o que o acaso produz nesse número de testes, e no caso observado o sinal apontava na direção contrária à teoria. A amostra de " +
+      v.dias + " dias só distingue efeitos maiores que cerca de 3 pontos percentuais: um efeito real menor que isso seria invisível aqui. O intradiário usado é do Ibovespa à vista, não do futuro, e apenas o vencimento mais curto entra no perfil.";
   }
 
-  function pct(x) {
-    return fmt1.format(x * 100) + "%";
-  }
-
-  /* ------------------------------------------------------- ao vivo */
+  /* =========================================================== ao vivo == */
 
   const INTERVALO_MS = 30000;
   let ultimaBusca = 0;
 
   function dentroDoPregao() {
-    // 10:00 as 18:30 de Brasilia, dias uteis. Fora disso a cotacao nao muda
-    // e buscar so gastaria requisicao.
-    const agora = new Date();
-    const brt = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const brt = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
     const dia = brt.getDay();
     if (dia === 0 || dia === 6) return false;
     const min = brt.getHours() * 60 + brt.getMinutes();
@@ -1376,58 +1293,72 @@
   }
 
   function marcarStatus(estado, texto) {
-    const el2 = el("s-vivo");
-    el2.className = "vivo" + (estado ? " " + estado : "");
-    el2.textContent = texto;
+    const e = el("s-vivo");
+    e.className = "vivo" + (estado ? " " + estado : "");
+    e.textContent = texto;
   }
 
   async function buscarCotacao() {
-    if (!DADOS.cotacao_url) return;
-    if (document.hidden) return;
-    if (!dentroDoPregao()) {
-      marcarStatus("", "fora do pregão · fechamento");
-      return;
-    }
+    if (!DADOS.cotacao_url || document.hidden) return;
+    if (!dentroDoPregao()) { marcarStatus("", "fora do pregão · fechamento"); return; }
     if (Date.now() - ultimaBusca < INTERVALO_MS - 2000) return;
     ultimaBusca = Date.now();
-
     try {
       const r = await fetch(DADOS.cotacao_url, { cache: "no-store" });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const d = await r.json();
-      if (!d.ok || !d.cotacoes || !d.cotacoes.BOVA11) {
-        throw new Error(d.erro || "sem cotação");
-      }
+      if (!d.ok || !d.cotacoes || !d.cotacoes.BOVA11) throw new Error(d.erro || "sem cotação");
       vivo = d.cotacoes;
       const h = new Date().toLocaleTimeString("pt-BR", {
         hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo",
       });
       marcarStatus("ativo", "ao vivo · " + h + " · atraso típico 15 min");
       render();
-      pintarTopo();
     } catch (e) {
       // Falhar para o fechamento e o comportamento correto: melhor um preco
       // declaradamente de ontem do que um numero errado com cara de atual.
       vivo = null;
-      marcarStatus("falha", "cotação indisponível · fechamento");
+      marcarStatus("", "cotação indisponível · fechamento");
       render();
-      pintarTopo();
     }
   }
 
-  /* --------------------------------------------------------- render */
+  /* ============================================================ render == */
 
   function render() {
     const v = DADOS.vencimentos[atual];
+    pintarTopo(v);
     pintarChips();
-    pintarVol(v);
-    pintarRegime(v);
+    pintarKpis(v);
     pintarNiveis(v);
     pintarGrafico(v);
     pintarTabela(v);
   }
 
-  pintarTopo();
+  function trocarAba(qual) {
+    const painel = qual === "painel";
+    el("aba-painel").hidden = !painel;
+    el("aba-metodo").hidden = painel;
+    el("t-painel").setAttribute("aria-selected", String(painel));
+    el("t-metodo").setAttribute("aria-selected", String(!painel));
+    window.scrollTo({ top: 0 });
+  }
+  el("t-painel").addEventListener("click", () => trocarAba("painel"));
+  el("t-metodo").addEventListener("click", () => trocarAba("metodo"));
+
+  el("btn-zoom").addEventListener("click", (ev) => {
+    zoomAtm = !zoomAtm;
+    ev.currentTarget.setAttribute("aria-pressed", String(zoomAtm));
+    ev.currentTarget.textContent = zoomAtm ? "Ver tudo" : "Zoom ATM";
+    pintarGrafico(DADOS.vencimentos[atual]);
+  });
+
+  document.addEventListener("click", (ev) => {
+    if (!ev.target.closest(".popover") && !ev.target.closest(".ajuda")) {
+      document.querySelectorAll(".popover").forEach((p) => p.remove());
+    }
+  });
+
   pintarValidacao();
   render();
   window.addEventListener("resize", esconderTip);
@@ -1435,8 +1366,6 @@
   if (DADOS.cotacao_url) {
     buscarCotacao();
     setInterval(buscarCotacao, INTERVALO_MS);
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) buscarCotacao();
-    });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) buscarCotacao(); });
   }
 </script>
