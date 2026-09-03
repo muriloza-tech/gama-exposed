@@ -21,6 +21,7 @@ from ..model.levels import Zona, extrair_niveis
 from ..model.profile import construir_perfil
 
 MARCADOR = "/*__DADOS__*/ null"
+CAMINHO_VALIDACAO = Path(__file__).resolve().parents[2] / "validacao.json"
 TEMPLATE_PADRAO = Path(__file__).resolve().parents[2] / "site" / "template.html"
 
 
@@ -122,6 +123,13 @@ def montar_payload(
 
     vencimentos.sort(key=lambda v: v["data"])
 
+    # Resultado do backtest, quando existir. A pagina exibe o que houver --
+    # inclusive resultado nulo. Omitir uma validacao desfavoravel seria
+    # apresentar o painel como melhor do que a evidencia sustenta.
+    validacao = None
+    if CAMINHO_VALIDACAO.exists():
+        validacao = json.loads(CAMINHO_VALIDACAO.read_text(encoding="utf-8"))
+
     return {
         "spot": round(spot, 2),
         "ratio_win": round(float(ratio_win), 2),
@@ -130,6 +138,7 @@ def montar_payload(
         "faixa_exibida": faixa_relativa,
         "vol_fallback": vol_fallback,
         "vencimentos": vencimentos,
+        "validacao": validacao,
     }
 
 

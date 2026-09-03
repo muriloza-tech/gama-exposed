@@ -1,0 +1,118 @@
+{
+ "periodo_inicio": "2026-06-15",
+ "periodo_fim": "2026-09-03",
+ "dias": 59,
+ "fonte_intradiaria": "Ibovespa, barras de 5 minutos",
+ "configuracoes": [
+  {
+   "rotulo": "30 minutos",
+   "eventos": 4349,
+   "dias": 59,
+   "baseline": 0.5102,
+   "baseline_ic": [
+    0.4861,
+    0.5338
+   ],
+   "grupos": [
+    {
+     "nome": "gama negativo",
+     "n": 2253,
+     "taxa": 0.5087,
+     "dif": -0.0016,
+     "dif_ic": [
+      -0.0227,
+      0.0194
+     ],
+     "significativa": false,
+     "retorno_medio_pts": 0.5
+    },
+    {
+     "nome": "gama positivo",
+     "n": 2096,
+     "taxa": 0.5119,
+     "dif": 0.0017,
+     "dif_ic": [
+      -0.0212,
+      0.0258
+     ],
+     "significativa": false,
+     "retorno_medio_pts": 19.5
+    }
+   ]
+  },
+  {
+   "rotulo": "60 minutos",
+   "eventos": 3995,
+   "dias": 59,
+   "baseline": 0.4996,
+   "baseline_ic": [
+    0.4723,
+    0.5273
+   ],
+   "grupos": [
+    {
+     "nome": "gama negativo",
+     "n": 2059,
+     "taxa": 0.5046,
+     "dif": 0.005,
+     "dif_ic": [
+      -0.0204,
+      0.0313
+     ],
+     "significativa": false,
+     "retorno_medio_pts": 4.6
+    },
+    {
+     "nome": "gama positivo",
+     "n": 1936,
+     "taxa": 0.4943,
+     "dif": -0.0053,
+     "dif_ic": [
+      -0.0323,
+      0.0238
+     ],
+     "significativa": false,
+     "retorno_medio_pts": 24.2
+    }
+   ]
+  },
+  {
+   "rotulo": "30 min, movimento acima de 100 pts",
+   "eventos": 2638,
+   "dias": 59,
+   "baseline": 0.5186,
+   "baseline_ic": [
+    0.4861,
+    0.5497
+   ],
+   "grupos": [
+    {
+     "nome": "gama negativo",
+     "n": 1354,
+     "taxa": 0.5133,
+     "dif": -0.0053,
+     "dif_ic": [
+      -0.0331,
+      0.0225
+     ],
+     "significativa": false,
+     "retorno_medio_pts": 12.6
+    },
+    {
+     "nome": "gama positivo",
+     "n": 1284,
+     "taxa": 0.5241,
+     "dif": 0.0056,
+     "dif_ic": [
+      -0.0235,
+      0.0366
+     ],
+     "significativa": false,
+     "retorno_medio_pts": 32.0
+    }
+   ]
+  }
+ ],
+ "comparacoes": 19,
+ "significativas": 1
+}
