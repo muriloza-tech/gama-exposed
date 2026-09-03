@@ -22,6 +22,7 @@ from ..model.profile import construir_perfil
 
 MARCADOR = "/*__DADOS__*/ null"
 CAMINHO_VALIDACAO = Path(__file__).resolve().parents[2] / "validacao.json"
+CAMINHO_CONFIG = Path(__file__).resolve().parents[2] / "config.json"
 TEMPLATE_PADRAO = Path(__file__).resolve().parents[2] / "site" / "template.html"
 
 
@@ -130,6 +131,17 @@ def montar_payload(
     if CAMINHO_VALIDACAO.exists():
         validacao = json.loads(CAMINHO_VALIDACAO.read_text(encoding="utf-8"))
 
+    # URL do proxy de cotacao. Ausente ou vazia desliga o preco ao vivo, e a
+    # pagina cai para o fechamento -- degradar para o dado certo e mais
+    # seguro do que exibir preco velho como se fosse atual.
+    cotacao_url = ""
+    if CAMINHO_CONFIG.exists():
+        cotacao_url = str(
+            json.loads(CAMINHO_CONFIG.read_text(encoding="utf-8")).get(
+                "cotacao_url", ""
+            )
+        ).strip()
+
     return {
         "spot": round(spot, 2),
         "ratio_win": round(float(ratio_win), 2),
@@ -139,6 +151,7 @@ def montar_payload(
         "vol_fallback": vol_fallback,
         "vencimentos": vencimentos,
         "validacao": validacao,
+        "cotacao_url": cotacao_url,
     }
 
 

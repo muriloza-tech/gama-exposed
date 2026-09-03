@@ -135,6 +135,31 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .vivo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .vivo::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--ink-3);
+  }
+  .vivo.ativo { color: var(--gama-pos); }
+  .vivo.ativo::before {
+    background: var(--gama-pos);
+    animation: pulso 2.4s ease-in-out infinite;
+  }
+  .vivo.falha { color: var(--ink-3); }
+  @keyframes pulso { 50% { opacity: 0.3; } }
+  @media (prefers-reduced-motion: reduce) {
+    .vivo.ativo::before { animation: none; }
+  }
+
   /* ------------------------------------------------------ vencimentos */
 
   .venc { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -605,10 +630,11 @@
     </p>
     <div class="stamp">
       <span>Subjacente <b>BOVA11</b></span>
-      <span>Fechamento <b id="s-spot">—</b></span>
+      <span id="s-rotulo-preco">Fechamento</span> <b id="s-spot">—</b>
       <span>Ibovespa <b id="s-ibov">—</b></span>
       <span>Posições em aberto de <b id="s-data">—</b></span>
       <span>Vol implícita <b id="s-vol">—</b></span>
+      <span class="vivo" id="s-vivo">fechamento</span>
     </div>
   </header>
 
@@ -825,11 +851,35 @@
 
   let atual = 0;
 
+  // Cotacao ao vivo. Enquanto for null, tudo usa o fechamento -- a curva de
+  // gama nunca e ao vivo (a B3 so publica posicao apos o fechamento), mas o
+  // preco pode ser, e e isso que faz o regime poder virar durante o pregao.
+  let vivo = null;
+
+  const precoBova = () => (vivo && vivo.BOVA11) || DADOS.spot;
+  const pontosDoPreco = () =>
+    (vivo && vivo.IBOV) || DADOS.spot * DADOS.ratio_win;
+  const ratioAtual = () =>
+    vivo && vivo.IBOV && vivo.BOVA11 ? vivo.IBOV / vivo.BOVA11 : DADOS.ratio_win;
+
+  function interp(x, xs, ys) {
+    if (x <= xs[0]) return ys[0];
+    if (x >= xs[xs.length - 1]) return ys[ys.length - 1];
+    for (let i = 0; i < xs.length - 1; i++) {
+      if (x <= xs[i + 1]) {
+        const t = (x - xs[i]) / (xs[i + 1] - xs[i]);
+        return ys[i] + t * (ys[i + 1] - ys[i]);
+      }
+    }
+    return ys[ys.length - 1];
+  }
+
   /* ------------------------------------------------------------ topo */
 
   function pintarTopo() {
-    el("s-spot").textContent = reais(DADOS.spot);
-    el("s-ibov").textContent = pontos(DADOS.spot * DADOS.ratio_win) + " pts";
+    el("s-spot").textContent = reais(precoBova());
+    el("s-ibov").textContent = pontos(pontosDoPreco()) + " pts";
+    el("s-rotulo-preco").textContent = vivo ? "Preço agora" : "Fechamento";
     el("s-data").textContent = DADOS.as_of.split("-").reverse().join("/");
     el("s-geracao").textContent = "Gerado em " + DADOS.gerado_em + " a partir dos arquivos públicos da B3.";
   }
@@ -858,8 +908,9 @@
   /* ---------------------------------------------------------- regime */
 
   function pintarRegime(v) {
-    const negativo = v.gama_no_spot < 0;
-    el("s-gama").textContent = brl(v.gama_no_spot);
+    const g = vivo ? interp(precoBova(), v.strikes, v.gama) : v.gama_no_spot;
+    const negativo = g < 0;
+    el("s-gama").textContent = brl(g);
     el("s-gama").style.color = negativo ? "var(--neg)" : "var(--pos)";
     const tag = el("s-tag");
     tag.textContent = negativo ? "Gama negativo" : "Gama positivo";
@@ -903,7 +954,7 @@
     const marcaSpot = (barra) => {
       const m = document.createElement("div");
       m.className = "marca";
-      m.style.left = "calc(" + pos(DADOS.spot) + "% - 1px)";
+      m.style.left = "calc(" + pos(precoBova()) + "% - 1px)";
       m.title = "preço de referência";
       barra.appendChild(m);
     };
@@ -928,10 +979,11 @@
     }
 
     if (v.flip !== null) {
-      const dist = v.flip - DADOS.spot;
+      const dist = v.flip - precoBova();
       box.appendChild(linhaNivel(
         "Virada de sinal",
-        (dist >= 0 ? "+" : "−") + fmt2.format(Math.abs(dist)) + " do preço de referência",
+        (dist >= 0 ? "+" : "−") + fmt2.format(Math.abs(dist)) +
+          (vivo ? " do preço agora" : " do fechamento"),
         reais(v.flip), pontos(v.flip * DADOS.ratio_win),
         (barra) => {
           const p = document.createElement("div");
@@ -1083,7 +1135,7 @@
         fill: "var(--put)", rx: 1.5
       }));
 
-      const win = Math.round(ks[i] * DADOS.ratio_win);
+      const win = Math.round(ks[i] * ratioAtual());
       svg.appendChild(mk("text", {
         x: x, y: yOi1 + (i % 2 === 0 ? 16 : 29),
         class: "g-strike", "text-anchor": "middle"
@@ -1093,26 +1145,26 @@
     // -------------------------------------------- linhas de referencia
     const linhas = [];
     linhas.push({
-      p: DADOS.spot, cor: "var(--ink)", tracejado: "6 4",
-      rot: "PRE\u00c7O " + fmt0.format(Math.round(DADOS.spot * DADOS.ratio_win))
+      p: precoBova(), cor: "var(--ink)", tracejado: "6 4",
+      rot: "PRE\u00c7O " + fmt0.format(Math.round(pontosDoPreco()))
     });
     if (v.flip !== null) {
       linhas.push({
         p: v.flip, cor: "var(--flip)", tracejado: "7 3 2 3",
-        rot: "VIRADA " + fmt0.format(Math.round(v.flip * DADOS.ratio_win))
+        rot: "VIRADA " + fmt0.format(Math.round(v.flip * ratioAtual()))
       });
     }
     if (v.call_wall) {
       linhas.push({
         p: v.call_wall.pico, cor: "var(--call)", tracejado: "2 3",
-        rot: "CALL " + fmt0.format(Math.round(v.call_wall.pico * DADOS.ratio_win)),
+        rot: "CALL " + fmt0.format(Math.round(v.call_wall.pico * ratioAtual())),
         faixa: v.call_wall
       });
     }
     if (v.put_wall) {
       linhas.push({
         p: v.put_wall.pico, cor: "var(--put)", tracejado: "2 3",
-        rot: "PUT " + fmt0.format(Math.round(v.put_wall.pico * DADOS.ratio_win)),
+        rot: "PUT " + fmt0.format(Math.round(v.put_wall.pico * ratioAtual())),
         faixa: v.put_wall
       });
     }
@@ -1300,6 +1352,62 @@
     return fmt1.format(x * 100) + "%";
   }
 
+  /* ------------------------------------------------------- ao vivo */
+
+  const INTERVALO_MS = 30000;
+  let ultimaBusca = 0;
+
+  function dentroDoPregao() {
+    // 10:00 as 18:30 de Brasilia, dias uteis. Fora disso a cotacao nao muda
+    // e buscar so gastaria requisicao.
+    const agora = new Date();
+    const brt = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const dia = brt.getDay();
+    if (dia === 0 || dia === 6) return false;
+    const min = brt.getHours() * 60 + brt.getMinutes();
+    return min >= 600 && min <= 1110;
+  }
+
+  function marcarStatus(estado, texto) {
+    const el2 = el("s-vivo");
+    el2.className = "vivo" + (estado ? " " + estado : "");
+    el2.textContent = texto;
+  }
+
+  async function buscarCotacao() {
+    if (!DADOS.cotacao_url) return;
+    if (document.hidden) return;
+    if (!dentroDoPregao()) {
+      marcarStatus("", "fora do pregão · fechamento");
+      return;
+    }
+    if (Date.now() - ultimaBusca < INTERVALO_MS - 2000) return;
+    ultimaBusca = Date.now();
+
+    try {
+      const r = await fetch(DADOS.cotacao_url, { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const d = await r.json();
+      if (!d.ok || !d.cotacoes || !d.cotacoes.BOVA11) {
+        throw new Error(d.erro || "sem cotação");
+      }
+      vivo = d.cotacoes;
+      const h = new Date().toLocaleTimeString("pt-BR", {
+        hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo",
+      });
+      marcarStatus("ativo", "ao vivo · " + h + " · atraso típico 15 min");
+      render();
+      pintarTopo();
+    } catch (e) {
+      // Falhar para o fechamento e o comportamento correto: melhor um preco
+      // declaradamente de ontem do que um numero errado com cara de atual.
+      vivo = null;
+      marcarStatus("falha", "cotação indisponível · fechamento");
+      render();
+      pintarTopo();
+    }
+  }
+
   /* --------------------------------------------------------- render */
 
   function render() {
@@ -1316,4 +1424,12 @@
   pintarValidacao();
   render();
   window.addEventListener("resize", esconderTip);
+
+  if (DADOS.cotacao_url) {
+    buscarCotacao();
+    setInterval(buscarCotacao, INTERVALO_MS);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) buscarCotacao();
+    });
+  }
 </script>

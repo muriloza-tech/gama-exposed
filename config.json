@@ -1,0 +1,4 @@
+{
+ "_comentario": "URL do Worker de cotacao. Vazio desliga o preco ao vivo e a pagina exibe apenas o fechamento -- que e o comportamento correto quando nao ha fonte.",
+ "cotacao_url": "https://gama-cotacao.murilo-za.workers.dev"
+}
