@@ -523,6 +523,7 @@
   }
   table.ag td.ev { color: var(--ink); }
   table.ag td.ev .per { font-family: var(--f-num); font-size: 11px; color: var(--ink-3); margin-left: 6px; }
+  table.ag td.ev .pt { font-size: 12px; color: var(--ink-2); margin-left: 6px; font-weight: 400; }
   table.ag td.n {
     font-family: var(--f-num);
     font-size: 12.5px;
@@ -1495,6 +1496,185 @@
   const diaBrt = (iso) =>
     new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 
+  /* Traducao dos titulos. A fonte entrega em ingles e sao 162 nomes
+     distintos so nos eventos relevantes de tres meses -- dicionario fixo nao
+     cobre. A estrategia e compor: separa os sufixos (MoM, YoY, Flash...),
+     traduz o nome-base e recombina.
+
+     Quando o nome-base nao esta no dicionario, NAO ha parenteses: o titulo
+     fica so em ingles. Traducao errada e pior que ausente num painel que
+     outras pessoas leem. */
+
+  const SUFIXOS = [
+    [/\bMoM\b/i, "mensal"],
+    [/\bYoY\b/i, "anual"],
+    [/\bQoQ\b/i, "trimestral"],
+    [/\bWoW\b/i, "semanal"],
+    [/\bFlash\b/i, "prévia"],
+    [/\bPrel(im)?\b/i, "prévia"],
+    [/\bAdv\b/i, "prévia"],
+    [/\bFinal\b/i, "final"],
+    [/\bs\.a\.\b/i, "dessaz."],
+  ];
+
+  const TERMOS = {
+    "unemployment rate": "taxa de desemprego",
+    "retail sales": "vendas no varejo",
+    "industrial production": "produção industrial",
+    "balance of trade": "balança comercial",
+    "exports": "exportações",
+    "imports": "importações",
+    "current account": "conta corrente",
+    "inflation rate": "inflação",
+    "core inflation rate": "inflação, núcleo",
+    "ppi": "preços ao produtor",
+    "cpi": "preços ao consumidor",
+    "pce price index": "índice de preços PCE",
+    "core pce price index": "núcleo do PCE",
+    "gdp growth rate": "PIB",
+    "initial jobless claims": "pedidos iniciais de auxílio-desemprego",
+    "continuing jobless claims": "pedidos continuados de auxílio-desemprego",
+    "non farm payrolls": "payroll, folha não agrícola",
+    "adp employment change": "emprego ADP",
+    "adp employment change weekly": "emprego ADP, semanal",
+    "participation rate": "taxa de participação",
+    "average hourly earnings": "salário médio por hora",
+    "jolts job openings": "vagas em aberto, JOLTS",
+    "factory orders": "pedidos à indústria",
+    "durable goods orders": "bens duráveis",
+    "consumer confidence": "confiança do consumidor",
+    "gfk consumer confidence": "confiança do consumidor, GfK",
+    "business confidence": "confiança empresarial",
+    "michigan consumer sentiment": "sentimento do consumidor, Michigan",
+    "zew economic sentiment index": "índice ZEW de expectativas",
+    "ism manufacturing pmi": "ISM industrial",
+    "ism services pmi": "ISM de serviços",
+    "ism manufacturing employment": "emprego, ISM industrial",
+    "ism services employment": "emprego, ISM de serviços",
+    "s&p global manufacturing pmi": "PMI industrial",
+    "s&p global services pmi": "PMI de serviços",
+    "s&p global composite pmi": "PMI composto",
+    "s&p global construction pmi": "PMI de construção",
+    "ratingdog manufacturing pmi": "PMI industrial",
+    "ratingdog services pmi": "PMI de serviços",
+    "ratingdog composite pmi": "PMI composto",
+    "manufacturing pmi": "PMI industrial",
+    "services pmi": "PMI de serviços",
+    "composite pmi": "PMI composto",
+    "housing starts": "construções iniciadas",
+    "building permits": "alvarás de construção",
+    "new home sales": "venda de casas novas",
+    "existing home sales": "venda de casas usadas",
+    "nationwide housing prices": "preços de imóveis, Nationwide",
+    "mortgage lending": "crédito imobiliário",
+    "mortgage approvals": "aprovações de hipoteca",
+    "mba 30-year mortgage rate": "taxa de hipoteca 30 anos, MBA",
+    "mba mortgage applications": "pedidos de hipoteca, MBA",
+    "boe consumer credit": "crédito ao consumidor, BoE",
+    "consumer credit": "crédito ao consumidor",
+    "eia crude oil stocks change": "estoques de petróleo, EIA",
+    "eia gasoline stocks change": "estoques de gasolina, EIA",
+    "eia natural gas stocks change": "estoques de gás natural, EIA",
+    "api crude oil stock change": "estoques de petróleo, API",
+    "new car registrations": "emplacamentos",
+    "household spending": "consumo das famílias",
+    "bcb focus market readout": "Boletim Focus",
+    "bcb copom meeting minutes": "ata do Copom",
+    "copom meeting minutes": "ata do Copom",
+    "interest rate decision": "decisão de juros",
+    "fed interest rate decision": "decisão de juros do Fed",
+    "fomc economic projections": "projeções do FOMC, dot plot",
+    "fomc minutes": "ata do FOMC",
+    "fed press conference": "coletiva do Fed",
+    "fed balance sheet": "balanço do Fed",
+    "fed beige book": "Livro Bege",
+    "bcb national monetary council meeting": "reunião do CMN",
+    "selic interest rate": "taxa Selic",
+    "ipca": "IPCA",
+    "unemployment change": "variação do desemprego",
+    "employment change": "variação do emprego",
+    "capacity utilization": "utilização da capacidade",
+    "construction pmi": "PMI de construção",
+    "trade balance": "balança comercial",
+    "government budget value": "resultado fiscal",
+    "wholesale inventories": "estoques no atacado",
+    "business inventories": "estoques empresariais",
+    "chicago fed national activity index": "índice de atividade, Fed de Chicago",
+    "philadelphia fed manufacturing index": "índice industrial, Fed da Filadélfia",
+    "dallas fed manufacturing index": "índice industrial, Fed de Dallas",
+    "ny empire state manufacturing index": "índice industrial, Empire State",
+    "richmond fed manufacturing index": "índice industrial, Fed de Richmond",
+    "ecb interest rate decision": "decisão de juros do BCE",
+    "ecb press conference": "coletiva do BCE",
+    "deposit facility rate": "taxa de depósito, BCE",
+    "marginal lending rate": "taxa de empréstimo marginal, BCE",
+    "core ppi": "preços ao produtor, núcleo",
+    "gdp": "PIB",
+    "gdp growth annualized": "PIB anualizado",
+    "gdp 3-month avg": "PIB, média de 3 meses",
+    "goods trade balance": "balança de bens",
+    "goods trade balance non-eu": "balança de bens, fora da UE",
+    "manufacturing production": "produção manufatureira",
+    "retail sales ex autos": "vendas no varejo, ex-automóveis",
+    "house price index": "índice de preços de imóveis",
+    "lloyds house price index": "índice de preços de imóveis, Lloyds",
+    "rics house price balance": "balanço de preços de imóveis, RICS",
+    "brc retail sales monitor": "vendas no varejo, BRC",
+    "monthly budget statement": "resultado fiscal mensal",
+    "new yuan loans": "novos empréstimos em yuan",
+    "fixed asset investment (ytd)": "investimento em ativos fixos, no ano",
+    "fdi (ytd)": "investimento estrangeiro direto, no ano",
+    "wholesale prices": "preços no atacado",
+    "export prices": "preços de exportação",
+    "import prices": "preços de importação",
+    "average earnings incl. bonus (3mo/yr)": "salário médio com bônus, 3 meses",
+    "average earnings excl. bonus (3mo/yr)": "salário médio sem bônus, 3 meses",
+    "construction output": "produção da construção",
+    "consumer inflation expectations": "expectativa de inflação do consumidor",
+    "money supply m3": "meio de pagamento M3",
+    "private sector credit": "crédito ao setor privado",
+    "loan growth": "crescimento do crédito",
+    "unemployment benefit claims": "pedidos de seguro-desemprego",
+    "claimant count change": "variação de beneficiários",
+    "10-year note auction": "leilão de treasury 10 anos",
+    "30-year bond auction": "leilão de treasury 30 anos",
+    "30-year jgb auction": "leilão de JGB 30 anos",
+  };
+
+  function traduzir(titulo) {
+    let base = String(titulo).trim();
+    const marcas = [];
+
+    // Discurso: "Fed Waller Speech" -> "discurso de Fed Waller"
+    const fala = base.match(/^(.*)\s+(Speech|Testimony)$/i);
+    if (fala) {
+      return "discurso de " + fala[1].trim();
+    }
+
+    for (const [re, pt] of SUFIXOS) {
+      if (re.test(base)) {
+        marcas.push(pt);
+        base = base.replace(re, " ");
+      }
+    }
+    base = base.replace(/\s+/g, " ").trim();
+
+    const pt = TERMOS[base.toLowerCase()];
+    if (!pt) return null;               // sem traducao confiavel: fica em ingles
+    return marcas.length ? pt + ", " + marcas.join(", ") : pt;
+  }
+
+  const MES_PT = {
+    Jan: "jan", Feb: "fev", Mar: "mar", Apr: "abr", May: "mai", Jun: "jun",
+    Jul: "jul", Aug: "ago", Sep: "set", Oct: "out", Nov: "nov", Dec: "dez",
+  };
+  function periodoPt(p) {
+    if (!p) return "";
+    return String(p)
+      .replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g, (m) => MES_PT[m])
+      .replace(/\bQ([1-4])\b/g, "$1º tri");
+  }
+
   /* Marcos que saem do proprio painel -- nada de fonte externa aqui. O
      vencimento e o evento que mais muda o perfil de gama, entao ele pertence
      ao calendario tanto quanto qualquer indicador. */
@@ -1668,10 +1848,17 @@
       const tdE = document.createElement("td");
       tdE.className = "ev";
       tdE.append(e.titulo);
+      const pt = traduzir(e.titulo);
+      if (pt) {
+        const t = document.createElement("span");
+        t.className = "pt";
+        t.textContent = "(" + pt + ")";
+        tdE.appendChild(t);
+      }
       if (e.periodo) {
         const per = document.createElement("span");
         per.className = "per";
-        per.textContent = e.periodo;
+        per.textContent = periodoPt(e.periodo);
         tdE.appendChild(per);
       }
 

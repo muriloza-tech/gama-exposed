@@ -153,6 +153,9 @@ const PADROES_MARCO = [
   { pais: "US", re: /fomc economic projections/i,  grupo: "fomc", nome: "FOMC", item: "projeções" },
   { pais: "US", re: /fed press conference/i,       grupo: "fomc", nome: "FOMC", item: "coletiva" },
   { pais: "US", re: /fomc minutes/i,               grupo: "fomc_ata", nome: "FOMC", item: "ata" },
+  { pais: "EU", re: /ecb interest rate decision/i, grupo: "bce", nome: "BCE", item: "decisão" },
+  { pais: "EU", re: /ecb press conference/i,       grupo: "bce", nome: "BCE", item: "coletiva" },
+  { pais: "EU", re: /deposit facility rate/i,      grupo: "bce", nome: "BCE", item: "taxa de depósito" },
 ];
 
 function classificarMarco(e) {
