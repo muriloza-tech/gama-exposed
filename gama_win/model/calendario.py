@@ -148,3 +148,66 @@ def dias_uteis_ate(inicio: date, fim: date) -> int:
 def tau_anos(inicio: date, fim: date) -> float:
     """Tempo ate o vencimento em anos de pregao (base 252)."""
     return dias_uteis_ate(inicio, fim) / DIAS_PREGAO_ANO
+
+
+# ------------------------------------------------- vencimento do indice ---
+
+# Contratos futuros de Ibovespa (IND e WIN) vencem em meses PARES.
+MESES_VENCIMENTO_INDICE: tuple[int, ...] = (2, 4, 6, 8, 10, 12)
+
+
+def vencimento_indice(ano: int, mes: int) -> date:
+    """Vencimento do futuro de Ibovespa (IND/WIN) no mes informado.
+
+    Regra da B3: quarta-feira mais proxima do dia 15 do mes de vencimento;
+    se nao houver pregao nesse dia, o dia util seguinte.
+
+    Nao ha empate possivel: quartas distam 7 dias, entao duas nunca ficam a
+    igual distancia de um dia 15 inteiro.
+
+    Levanta para mes impar -- nao existe contrato.
+    """
+    if mes not in MESES_VENCIMENTO_INDICE:
+        raise ValueError(
+            f"mes {mes} nao e mes de vencimento do indice; "
+            f"validos: {MESES_VENCIMENTO_INDICE}"
+        )
+
+    quartas = []
+    d = date(ano, mes, 1)
+    while d.month == mes:
+        if d.weekday() == 2:  # quarta-feira
+            quartas.append(d)
+        d += timedelta(days=1)
+
+    alvo = min(quartas, key=lambda q: abs(q.day - 15))
+
+    feriados = _feriados_np(ano, ano + 1)
+    while not np.is_busday(np.datetime64(alvo, "D"), holidays=feriados):
+        alvo += timedelta(days=1)
+    return alvo
+
+
+def proximos_vencimentos_indice(
+    a_partir_de: date, quantos: int = 3
+) -> list[date]:
+    """Proximos vencimentos do indice, incluindo o do proprio dia."""
+    if quantos < 1:
+        raise ValueError("quantos deve ser >= 1")
+
+    saida: list[date] = []
+    ano, mes = a_partir_de.year, a_partir_de.month
+    if mes not in MESES_VENCIMENTO_INDICE:
+        mes += 1
+    if mes > 12:
+        ano, mes = ano + 1, 2
+
+    while len(saida) < quantos:
+        if mes in MESES_VENCIMENTO_INDICE:
+            v = vencimento_indice(ano, mes)
+            if v >= a_partir_de:
+                saida.append(v)
+        mes += 2
+        if mes > 12:
+            ano, mes = ano + 1, 2
+    return saida

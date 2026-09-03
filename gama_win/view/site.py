@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 
 from ..data.schema import OptionChain
+from ..model.calendario import proximos_vencimentos_indice
 from ..model.levels import Zona, extrair_niveis
 from ..model.profile import construir_perfil
 
@@ -142,6 +143,12 @@ def montar_payload(
             )
         ).strip()
 
+    # Vencimento do futuro de Ibovespa (IND/WIN): regra deterministica da
+    # B3, calculada aqui em vez de buscada -- nao ha o que envelhecer.
+    vencimentos_indice = [
+        d.isoformat() for d in proximos_vencimentos_indice(as_of, 3)
+    ]
+
     return {
         "spot": round(spot, 2),
         "ratio_win": round(float(ratio_win), 2),
@@ -152,6 +159,7 @@ def montar_payload(
         "vencimentos": vencimentos,
         "validacao": validacao,
         "cotacao_url": cotacao_url,
+        "vencimentos_indice": vencimentos_indice,
     }
 
 

@@ -106,3 +106,90 @@ def test_tau_no_proprio_vencimento_nao_e_zero():
     """Garantia estrutural: nunca entregamos tau=0 as gregas."""
     t = tau_anos(date(2026, 9, 18), date(2026, 9, 18))
     assert t == pytest.approx(1 / 252)
+
+
+# ---------------------------------------------- vencimento do indice ------
+
+
+def test_vencimento_indice_e_sempre_quarta_ou_dia_util_seguinte():
+    """A regra e 'quarta mais proxima do dia 15'; so escapa da quarta quando
+    ela cai em feriado e o vencimento anda para o dia util seguinte."""
+    import numpy as np
+
+    from gama_win.model.calendario import _feriados_np, vencimento_indice
+
+    for ano in (2025, 2026, 2027, 2028):
+        for mes in (2, 4, 6, 8, 10, 12):
+            v = vencimento_indice(ano, mes)
+            assert v.month == mes and v.year == ano
+            fer = _feriados_np(ano, ano + 1)
+            assert np.is_busday(np.datetime64(v, "D"), holidays=fer), v
+            # quarta, ou empurrado para frente por feriado
+            assert v.weekday() >= 2, v
+
+
+def test_vencimento_indice_fica_perto_do_dia_15():
+    from gama_win.model.calendario import vencimento_indice
+
+    for ano in (2025, 2026, 2027):
+        for mes in (2, 4, 6, 8, 10, 12):
+            v = vencimento_indice(ano, mes)
+            assert abs(v.day - 15) <= 4, v
+
+
+@pytest.mark.parametrize(
+    "ano,mes,esperado",
+    [
+        (2026, 2, date(2026, 2, 18)),
+        (2026, 4, date(2026, 4, 15)),
+        (2026, 8, date(2026, 8, 12)),
+        (2026, 10, date(2026, 10, 14)),
+        (2026, 12, date(2026, 12, 16)),
+    ],
+)
+def test_vencimento_indice_valores_calculados(ano, mes, esperado):
+    """Fixa o resultado da regra. Se alguem mexer na implementacao, quebra."""
+    from gama_win.model.calendario import vencimento_indice
+
+    assert vencimento_indice(ano, mes) == esperado
+
+
+def test_vencimento_indice_rejeita_mes_impar():
+    from gama_win.model.calendario import vencimento_indice
+
+    for mes in (1, 3, 5, 7, 9, 11):
+        with pytest.raises(ValueError, match="nao e mes de vencimento"):
+            vencimento_indice(2026, mes)
+
+
+def test_proximos_vencimentos_indice_sao_crescentes_e_futuros():
+    from gama_win.model.calendario import proximos_vencimentos_indice
+
+    ref = date(2026, 9, 3)
+    vs = proximos_vencimentos_indice(ref, 5)
+    assert len(vs) == 5
+    assert all(v >= ref for v in vs)
+    assert vs == sorted(vs)
+    assert all(v.month in (2, 4, 6, 8, 10, 12) for v in vs)
+
+
+def test_proximos_vencimentos_inclui_o_do_proprio_dia():
+    from gama_win.model.calendario import proximos_vencimentos_indice, vencimento_indice
+
+    v = vencimento_indice(2026, 10)
+    assert proximos_vencimentos_indice(v, 1)[0] == v
+
+
+def test_proximos_vencimentos_atravessa_o_ano():
+    from gama_win.model.calendario import proximos_vencimentos_indice
+
+    vs = proximos_vencimentos_indice(date(2026, 11, 20), 3)
+    assert vs[0] == date(2026, 12, 16)
+    assert vs[1].year == 2027
+
+
+def test_proximos_vencimentos_quantos_invalido():
+    from gama_win.model.calendario import proximos_vencimentos_indice
+
+    with pytest.raises(ValueError, match="quantos"):
+        proximos_vencimentos_indice(date(2026, 9, 3), 0)

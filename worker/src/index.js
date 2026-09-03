@@ -128,8 +128,30 @@ function janelaDaSemana() {
     hoje,
     inicio: iso(segunda),
     de,
-    ate: new Date(Date.parse(de) + 7 * 86400000).toISOString(),
+    fimSemana: new Date(Date.parse(de) + 7 * 86400000).toISOString(),
+    // Janela longa numa unica chamada: alimenta os "proximos marcos"
+    // (Copom, decisao de juros) que ficam alem da semana exibida.
+    ate: new Date(Date.parse(de) + 120 * 86400000).toISOString(),
   };
+}
+
+/* Eventos que merecem destaque proprio no topo, mesmo fora da semana.
+   A fonte marca Copom como relevancia media; para day trade no Brasil ele
+   e o evento agendado mais importante do calendario. */
+const PADROES_MARCO = [
+  { re: /interest rate decision/i, pais: "BR", chave: "copom", nome: "Copom · decisão de juros" },
+  { re: /copom meeting minutes/i, pais: "BR", chave: "copom_ata", nome: "Copom · ata" },
+  { re: /fomc|fed interest rate decision/i, pais: "US", chave: "fomc", nome: "FOMC · decisão de juros" },
+  { re: /interest rate decision/i, pais: "US", chave: "fomc", nome: "FOMC · decisão de juros" },
+];
+
+function classificarMarco(e) {
+  for (const p of PADROES_MARCO) {
+    if (p.pais === e.pais && p.re.test(e.titulo)) {
+      return { chave: p.chave, nome: p.nome };
+    }
+  }
+  return null;
 }
 
 function normalizar(e) {
@@ -140,6 +162,8 @@ function normalizar(e) {
     titulo: e.title ?? e.indicator ?? "",
     periodo: e.period ?? "",
     relevancia: typeof e.importance === "number" ? e.importance : -1,
+    // Marcado depois pelo classificador: Copom/FOMC sobem para alta.
+    marco: null,
     efetivo: e.actual ?? null,
     consenso: e.forecast ?? null,
     anterior: e.previous ?? null,
@@ -152,7 +176,7 @@ function normalizar(e) {
 }
 
 async function rotaAgenda(cab) {
-  const { hoje, inicio, de, ate } = janelaDaSemana();
+  const { hoje, inicio, de, fimSemana, ate } = janelaDaSemana();
   const url = `${URL_AGENDA}?from=${de}&to=${ate}&countries=${PAISES}`;
 
   try {
@@ -165,17 +189,39 @@ async function rotaAgenda(cab) {
     const dados = await resp.json();
     const bruto = Array.isArray(dados?.result) ? dados.result : [];
 
-    const eventos = bruto
+    const todos = bruto
       .map(normalizar)
       .filter((e) => e.titulo && e.hora)
       .sort((a, b) => a.hora.localeCompare(b.hora));
 
-    return json({ ok: true, ts: Date.now(), hoje, inicio, eventos, erro: null }, 200, cab);
+    // A tabela mostra so a semana; a janela longa serve aos marcos.
+    const eventos = todos.filter((e) => e.hora < fimSemana);
+    // Copom e FOMC valem alta relevancia mesmo que a fonte diga media.
+    for (const e of eventos) {
+      const m = classificarMarco(e);
+      if (m) { e.marco = m.chave; e.relevancia = 1; }
+    }
+
+    const vistos = new Set();
+    const marcos = [];
+    for (const e of todos) {
+      const m = classificarMarco(e);
+      if (!m || vistos.has(m.chave)) continue;
+      if (e.hora < new Date().toISOString()) continue;   // so o proximo
+      vistos.add(m.chave);
+      marcos.push({ chave: m.chave, nome: m.nome, pais: e.pais, hora: e.hora });
+    }
+    marcos.sort((a, b) => a.hora.localeCompare(b.hora));
+
+    return json(
+      { ok: true, ts: Date.now(), hoje, inicio, eventos, marcos, erro: null },
+      200, cab,
+    );
   } catch (err) {
     // Devolve o contrato completo mesmo em falha, para a pagina so precisar
     // olhar `ok` e mostrar o aviso -- nunca quebrar.
     return json(
-      { ok: false, ts: Date.now(), hoje, inicio, eventos: [], erro: String(err?.message ?? err) },
+      { ok: false, ts: Date.now(), hoje, inicio, eventos: [], marcos: [], erro: String(err?.message ?? err) },
       502,
       cab,
     );

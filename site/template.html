@@ -424,6 +424,36 @@
   }
   .marco b { font-family: var(--f-num); color: var(--ink); }
 
+  .marcos { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 10px; }
+  .cartao-marco {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-left: 2px solid var(--cor, var(--ink-3));
+    border-radius: 8px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .cartao-marco .nome {
+    font-family: var(--f-num);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cartao-marco .quando-data { font-family: var(--f-num); font-size: 16px; font-weight: 700; color: var(--ink); }
+  .cartao-marco .falta { font-family: var(--f-num); font-size: 11.5px; color: var(--ink-2); }
+  .cartao-marco.hoje { border-color: var(--pos); }
+  .cartao-marco.hoje .falta { color: var(--pos); font-weight: 600; }
+
+  table.ag tr.marco-linha td.ev { color: var(--ink); }
+  table.ag tr.marco-linha td { background: rgba(192,132,252,0.07); }
+
   .leg-agenda {
     display: flex; gap: 6px 18px; flex-wrap: wrap;
     font-family: var(--f-num); font-size: 10.5px; color: var(--ink-3);
@@ -688,7 +718,7 @@
       </div>
     </div>
 
-    <div id="ag-marcos"></div>
+    <div class="marcos" id="ag-marcos"></div>
 
     <div class="leg-agenda">
       <span><i class="rel r1"></i>alta relevância</span>
@@ -1472,30 +1502,43 @@
     const box = el("ag-marcos");
     box.textContent = "";
     const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
-    const ms = DADOS.vencimentos
-      .map((v) => {
-        const dias = Math.round((Date.parse(v.data) - Date.parse(hoje)) / 86400000);
-        return { rotulo: v.rotulo.split(" ")[0], data: v.data, dias };
-      })
-      .filter((m) => m.dias >= 0);
-    if (!ms.length) return;
+    const emDias = (iso) => Math.round((Date.parse(iso.slice(0, 10)) - Date.parse(hoje)) / 86400000);
+    const texto = (d) => (d === 0 ? "hoje" : d === 1 ? "amanhã" : "em " + d + " dias");
 
-    const div = document.createElement("div");
-    div.className = "marco";
-    const r = document.createElement("span");
-    r.className = "rotulo";
-    r.textContent = "Vencimento de opções BOVA11";
-    div.appendChild(r);
-    ms.slice(0, 3).forEach((m) => {
-      const s = document.createElement("span");
-      const quando = m.dias === 0 ? "hoje" : m.dias === 1 ? "amanhã" : "em " + m.dias + " dias";
-      s.append(m.rotulo + " ");
-      const b = document.createElement("b");
-      b.textContent = m.data.split("-").reverse().join("/");
-      s.append(b, " (" + quando + ")");
-      div.appendChild(s);
-    });
-    box.appendChild(div);
+    const cartao = (nome, dataIso, cor, extra) => {
+      const d = emDias(dataIso);
+      if (d < 0) return;
+      const c = document.createElement("div");
+      c.className = "cartao-marco" + (d === 0 ? " hoje" : "");
+      c.style.setProperty("--cor", cor);
+      const n = document.createElement("div");
+      n.className = "nome";
+      n.textContent = nome;
+      const dt = document.createElement("div");
+      dt.className = "quando-data";
+      dt.textContent = dataIso.slice(0, 10).split("-").reverse().join("/");
+      const f = document.createElement("div");
+      f.className = "falta";
+      f.textContent = texto(d) + (extra ? " · " + extra : "");
+      c.append(n, dt, f);
+      box.appendChild(c);
+    };
+
+    // 1) Vencimento de opcoes: vem do proprio payload do painel.
+    const venc = DADOS.vencimentos.filter((v) => emDias(v.data) >= 0)[0];
+    if (venc) cartao("Vencimento opções BOVA11", venc.data, "var(--parede-call)", venc.rotulo.split(" ")[0]);
+
+    // 2) Vencimento do indice: regra deterministica calculada no pipeline.
+    const win = (DADOS.vencimentos_indice || []).filter((d) => emDias(d) >= 0)[0];
+    if (win) cartao("Vencimento WIN / IND", win, "var(--put)", "futuro de Ibovespa");
+
+    // 3) Copom e FOMC: vem do calendario, com janela alem da semana.
+    if (agenda && agenda.ok) {
+      (agenda.marcos || []).forEach((m) => {
+        const cor = m.pais === "BR" ? "var(--virada)" : "var(--call)";
+        cartao(m.nome, m.hora, cor, horaBrt(m.hora));
+      });
+    }
   }
 
   function celulaNum(valor, valorN, consensoN, ehEfetivo) {
@@ -1601,6 +1644,7 @@
 
       const tr = document.createElement("tr");
       if (e.relevancia === 1) tr.classList.add("alta");
+      if (e.marco) tr.classList.add("marco-linha");
       if (Date.parse(e.hora) < agora) tr.classList.add("passado");
 
       const tdH = document.createElement("td");
