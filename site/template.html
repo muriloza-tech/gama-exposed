@@ -1682,10 +1682,23 @@
     let base = String(titulo).trim();
     const marcas = [];
 
-    // Discurso: "Fed Waller Speech" -> "discurso de Fed Waller"
-    const fala = base.match(/^(.*)\s+(Speech|Testimony)$/i);
+    // Discurso: separa a instituicao do nome, porque "discurso de Fed
+    // Waller" nao e portugues. "BoE Gov Bailey Speech" -> "discurso de
+    // Bailey, BoE".
+    const fala = base.match(/^(.*?)\s+(Speech|Testimony)$/i);
     if (fala) {
-      return "discurso de " + fala[1].trim();
+      let quem = fala[1].trim();
+      const tipo = /testimony/i.test(fala[2]) ? "depoimento" : "discurso";
+      const inst = quem.match(
+        /^(Fed|FOMC|ECB|BoE|BoJ|BCB|SNB|RBA|RBNZ|BoC|PBoC)\s*(.*)$/i);
+      if (inst) {
+        const sigla = inst[1].toUpperCase() === "ECB" ? "BCE" : inst[1];
+        // Cargos ("Gov", "Pres", "Chair") nao acrescentam nada em uma linha.
+        const nome = inst[2].replace(
+          /^(Gov(ernor)?|Pres(ident)?|Chair(man)?|Chief\s+Economist|Board\s+Member|Dep(uty)?)\.?\s+/i, "").trim();
+        return nome ? `${tipo} de ${nome}, ${sigla}` : `${tipo}, ${sigla}`;
+      }
+      return `${tipo} de ${quem}`;
     }
 
     for (const [re, pt] of SUFIXOS) {
