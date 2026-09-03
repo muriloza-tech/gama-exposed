@@ -1683,22 +1683,24 @@
     const marcas = [];
 
     // Discurso: separa a instituicao do nome, porque "discurso de Fed
-    // Waller" nao e portugues. "BoE Gov Bailey Speech" -> "discurso de
-    // Bailey, BoE".
+    // Waller" nao e portugues. "BoE Gov Bailey Speech" vira "discurso de
+    // Bailey, BoE". Sem \b na regex: o \s+ seguinte ja garante a fronteira,
+    // e escape a menos e uma armadilha a menos.
     const fala = base.match(/^(.*?)\s+(Speech|Testimony)$/i);
     if (fala) {
-      let quem = fala[1].trim();
       const tipo = /testimony/i.test(fala[2]) ? "depoimento" : "discurso";
+      const quem = fala[1].trim();
       const inst = quem.match(
-        /^(Fed|FOMC|ECB|BoE|BoJ|BCB|SNB|RBA|RBNZ|BoC|PBoC)\s*(.*)$/i);
+        /^(Fed|FOMC|ECB|BoE|BoJ|BCB|SNB|RBA|RBNZ|BoC|PBoC)\s+(.*)$/i);
       if (inst) {
-        const sigla = inst[1].toUpperCase() === "ECB" ? "BCE" : inst[1];
-        // Cargos ("Gov", "Pres", "Chair") nao acrescentam nada em uma linha.
-        const nome = inst[2].replace(
-          /^(Gov(ernor)?|Pres(ident)?|Chair(man)?|Chief\s+Economist|Board\s+Member|Dep(uty)?)\.?\s+/i, "").trim();
-        return nome ? `${tipo} de ${nome}, ${sigla}` : `${tipo}, ${sigla}`;
+        const sigla = /^ecb$/i.test(inst[1]) ? "BCE" : inst[1];
+        // Cargos nao acrescentam nada numa linha de tabela.
+        const nome = inst[2]
+          .replace(/^(Gov(ernor)?|Pres(ident)?|Chair(man)?|Chief\s+Economist|Board\s+Member|Dep(uty)?)\.?\s+/i, "")
+          .trim();
+        return nome ? tipo + " de " + nome + ", " + sigla : tipo + ", " + sigla;
       }
-      return `${tipo} de ${quem}`;
+      return tipo + " de " + quem;
     }
 
     for (const [re, pt] of SUFIXOS) {
