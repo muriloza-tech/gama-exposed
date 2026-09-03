@@ -1532,11 +1532,13 @@
     const win = (DADOS.vencimentos_indice || []).filter((d) => emDias(d) >= 0)[0];
     if (win) cartao("Vencimento WIN / IND", win, "var(--put)", "futuro de Ibovespa");
 
-    // 3) Copom e FOMC: vem do calendario, com janela alem da semana.
+    // 3) Politica monetaria: vem do calendario, com janela alem da semana.
+    //    Um cartao por instituicao, listando o que compoe a reuniao.
     if (agenda && agenda.ok) {
       (agenda.marcos || []).forEach((m) => {
         const cor = m.pais === "BR" ? "var(--virada)" : "var(--call)";
-        cartao(m.nome, m.hora, cor, horaBrt(m.hora));
+        const itens = (m.itens || []).join(", ");
+        cartao(m.nome, m.hora, cor, horaBrt(m.hora) + (itens ? " · " + itens : ""));
       });
     }
   }

@@ -135,23 +135,58 @@ function janelaDaSemana() {
   };
 }
 
-/* Eventos que merecem destaque proprio no topo, mesmo fora da semana.
-   A fonte marca Copom como relevancia media; para day trade no Brasil ele
-   e o evento agendado mais importante do calendario. */
+/* Eventos de politica monetaria, que ganham destaque proprio no topo mesmo
+   fora da semana exibida.
+
+   Sao agrupados por INSTITUICAO, nao por evento: decisao, projecoes e
+   coletiva do Fed acontecem na mesma tarde, com 30 minutos entre elas. Tres
+   cartoes para a mesma reuniao seria ruido; um cartao que lista o que a
+   compoe informa mais e ocupa menos.
+
+   A fonte marca Copom como relevancia media. Para day trade no Brasil ele e
+   o evento agendado mais importante do calendario, entao sobe para alta --
+   isto e opiniao declarada, nao dado da fonte. */
 const PADROES_MARCO = [
-  { re: /interest rate decision/i, pais: "BR", chave: "copom", nome: "Copom · decisão de juros" },
-  { re: /copom meeting minutes/i, pais: "BR", chave: "copom_ata", nome: "Copom · ata" },
-  { re: /fomc|fed interest rate decision/i, pais: "US", chave: "fomc", nome: "FOMC · decisão de juros" },
-  { re: /interest rate decision/i, pais: "US", chave: "fomc", nome: "FOMC · decisão de juros" },
+  { pais: "BR", re: /interest rate decision/i,     grupo: "copom", nome: "Copom", item: "decisão" },
+  { pais: "BR", re: /copom meeting minutes/i,      grupo: "copom_ata", nome: "Copom", item: "ata" },
+  { pais: "US", re: /fed interest rate decision/i, grupo: "fomc", nome: "FOMC", item: "decisão" },
+  { pais: "US", re: /fomc economic projections/i,  grupo: "fomc", nome: "FOMC", item: "projeções" },
+  { pais: "US", re: /fed press conference/i,       grupo: "fomc", nome: "FOMC", item: "coletiva" },
+  { pais: "US", re: /fomc minutes/i,               grupo: "fomc_ata", nome: "FOMC", item: "ata" },
 ];
 
 function classificarMarco(e) {
   for (const p of PADROES_MARCO) {
     if (p.pais === e.pais && p.re.test(e.titulo)) {
-      return { chave: p.chave, nome: p.nome };
+      return { grupo: p.grupo, nome: p.nome, item: p.item };
     }
   }
   return null;
+}
+
+/** Agrupa os eventos de politica monetaria futuros num marco por grupo. */
+function montarMarcos(todos, agoraIso) {
+  const porGrupo = new Map();
+
+  for (const e of todos) {
+    const m = classificarMarco(e);
+    if (!m || e.hora < agoraIso) continue;
+
+    const atual = porGrupo.get(m.grupo);
+    // So o PROXIMO de cada grupo interessa; reunioes seguintes ficam de fora.
+    if (atual && atual.hora.slice(0, 10) !== e.hora.slice(0, 10)) continue;
+
+    if (!atual) {
+      porGrupo.set(m.grupo, {
+        grupo: m.grupo, nome: m.nome, pais: e.pais, hora: e.hora, itens: [m.item],
+      });
+    } else {
+      if (e.hora < atual.hora) atual.hora = e.hora;
+      if (!atual.itens.includes(m.item)) atual.itens.push(m.item);
+    }
+  }
+
+  return [...porGrupo.values()].sort((a, b) => a.hora.localeCompare(b.hora));
 }
 
 function normalizar(e) {
@@ -199,19 +234,10 @@ async function rotaAgenda(cab) {
     // Copom e FOMC valem alta relevancia mesmo que a fonte diga media.
     for (const e of eventos) {
       const m = classificarMarco(e);
-      if (m) { e.marco = m.chave; e.relevancia = 1; }
+      if (m) { e.marco = m.grupo; e.relevancia = 1; }
     }
 
-    const vistos = new Set();
-    const marcos = [];
-    for (const e of todos) {
-      const m = classificarMarco(e);
-      if (!m || vistos.has(m.chave)) continue;
-      if (e.hora < new Date().toISOString()) continue;   // so o proximo
-      vistos.add(m.chave);
-      marcos.push({ chave: m.chave, nome: m.nome, pais: e.pais, hora: e.hora });
-    }
-    marcos.sort((a, b) => a.hora.localeCompare(b.hora));
+    const marcos = montarMarcos(todos, new Date().toISOString());
 
     return json(
       { ok: true, ts: Date.now(), hoje, inicio, eventos, marcos, erro: null },
