@@ -1,0 +1,23 @@
+[project]
+name = "gama-win"
+version = "0.1.0"
+description = "Motor de perfil de gama para o mini indice (WIN) na B3"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "plotly>=5.24",
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["error::RuntimeWarning"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"

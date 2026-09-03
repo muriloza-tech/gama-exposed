@@ -1,0 +1,27 @@
+# Ambiente
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Arquivos brutos da B3: 325 MB, imutaveis por data e sempre rebaixaveis.
+data/cache/
+
+# Derivados regeneraveis
+data/snapshots/
+data/catalogo_series.json
+data/painel.json
+data/backtest_*.csv
+
+# Dados de terceiros com termos de redistribuicao proprios (Yahoo Finance).
+data/barras_ibov_5m.csv
+
+# Certificados exportados da loja do Windows desta maquina. Nao vao para um
+# repositorio publico: sao especificos da maquina e revelam o software
+# instalado nela. Regeneraveis pelo passo descrito no README.
+data/ca-bundle.pem
+
+# Sistema
+Thumbs.db
+.DS_Store

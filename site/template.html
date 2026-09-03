@@ -1,0 +1,1119 @@
+<title>Gama Exposed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ground: #eaedee;
+    --surface: #fbfcfc;
+    --surface-2: #f2f4f5;
+    --line: #d4dadd;
+    --line-strong: #aab4b9;
+    --ink: #14181b;
+    --ink-2: #47535a;
+    --ink-3: #6f7c83;
+    --neg: #c2521a;
+    --neg-soft: rgba(194, 82, 26, 0.13);
+    --pos: #1263a8;
+    --pos-soft: rgba(18, 99, 168, 0.13);
+    --gama-pos: #17803d;
+    --gama-neg: #cf2b2b;
+    --call: #1263a8;
+    --put: #d97706;
+    --flip: #8b3fc4;
+    --shadow: 0 1px 2px rgba(20, 24, 27, 0.06), 0 8px 24px rgba(20, 24, 27, 0.04);
+
+    --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0f1416;
+      --surface: #171e21;
+      --surface-2: #1e262a;
+      --line: #2b353a;
+      --line-strong: #45535a;
+      --ink: #e7edef;
+      --ink-2: #a4b1b7;
+      --ink-3: #7d8b92;
+      --neg: #d4742f;
+      --neg-soft: rgba(212, 116, 47, 0.18);
+      --pos: #3d9fd2;
+      --pos-soft: rgba(61, 159, 210, 0.18);
+      --gama-pos: #3fb950;
+      --gama-neg: #f8514a;
+      --call: #3d9fd2;
+      --put: #f0a03c;
+      --flip: #bb7ae8;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.28);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0f1416;
+    --surface: #171e21;
+    --surface-2: #1e262a;
+    --line: #2b353a;
+    --line-strong: #45535a;
+    --ink: #e7edef;
+    --ink-2: #a4b1b7;
+    --ink-3: #7d8b92;
+    --neg: #d4742f;
+    --neg-soft: rgba(212, 116, 47, 0.18);
+    --pos: #3d9fd2;
+    --pos-soft: rgba(61, 159, 210, 0.18);
+    --gama-pos: #3fb950;
+    --gama-neg: #f8514a;
+    --call: #3d9fd2;
+    --put: #f0a03c;
+    --flip: #bb7ae8;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.28);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 28px 20px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* ---------------------------------------------------------- cabecalho */
+
+  .top { display: flex; flex-direction: column; gap: 14px; }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(30px, 5vw, 44px);
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .sub { color: var(--ink-2); max-width: 64ch; margin: 0; }
+
+  .stamp {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    align-items: baseline;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--line);
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .stamp b {
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ------------------------------------------------------ vencimentos */
+
+  .venc { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .chip {
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 7px 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .chip:hover { border-color: var(--line-strong); color: var(--ink); }
+  .chip[aria-pressed="true"] {
+    color: var(--ink);
+    border-color: var(--ink);
+    box-shadow: inset 0 -2px 0 var(--ink);
+  }
+  .chip:focus-visible { outline: 2px solid var(--pos); outline-offset: 2px; }
+
+  /* ---------------------------------------------------------- regime */
+
+  .regime {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  @media (max-width: 720px) { .regime { grid-template-columns: 1fr; } }
+
+  .regime-num { padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; }
+  .regime-num .label {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .regime-num .valor {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(28px, 4.6vw, 40px);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.05;
+  }
+  .regime-num .unidade { font-size: 13px; color: var(--ink-2); }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    align-self: flex-start;
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 2px;
+    margin-top: 2px;
+  }
+  .tag::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .tag.is-neg { color: var(--neg); background: var(--neg-soft); }
+  .tag.is-pos { color: var(--pos); background: var(--pos-soft); }
+
+  .regime-txt {
+    padding: 20px 22px;
+    border-left: 1px solid var(--line);
+    background: var(--surface-2);
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  @media (max-width: 720px) {
+    .regime-txt { border-left: 0; border-top: 1px solid var(--line); }
+  }
+  .regime-txt p { margin: 0 0 9px; }
+  .regime-txt p:last-child { margin-bottom: 0; }
+  .regime-txt strong { color: var(--ink); font-weight: 600; }
+
+  /* ----------------------------------------------------------- niveis */
+
+  h2 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+    margin: 0 0 2px;
+  }
+  .secao { display: flex; flex-direction: column; gap: 12px; }
+  .secao > .hint { margin: 0; font-size: 13.5px; color: var(--ink-3); max-width: 70ch; }
+
+  .niveis { display: flex; flex-direction: column; }
+
+  .nivel {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr) 120px 120px;
+    gap: 16px;
+    align-items: center;
+    padding: 13px 2px;
+    border-bottom: 1px solid var(--line);
+  }
+  .nivel:first-child { border-top: 1px solid var(--line); }
+  @media (max-width: 720px) {
+    .nivel { grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+    .nivel .nome { grid-column: 1 / -1; }
+  }
+
+  .nivel .nome { display: flex; flex-direction: column; gap: 1px; }
+  .nivel .nome span:first-child {
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .nivel .nome span:last-child {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .nivel .barra { position: relative; height: 26px; }
+  .nivel .barra .trilho {
+    position: absolute;
+    inset: 11px 0 auto;
+    height: 3px;
+    background: var(--line);
+  }
+  .nivel .barra .faixa {
+    position: absolute;
+    top: 6px;
+    height: 13px;
+    border-radius: 1px;
+  }
+  .nivel .barra .marca {
+    position: absolute;
+    top: 2px;
+    width: 2px;
+    height: 21px;
+    background: var(--ink);
+  }
+  .nivel .barra .ponto {
+    position: absolute;
+    top: 6px;
+    width: 3px;
+    height: 13px;
+  }
+
+  .nivel .cifra,
+  .nivel .win {
+    font-family: var(--f-mono);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .nivel .cifra { font-weight: 600; }
+  .nivel .win { color: var(--ink-2); }
+  .nivel .cifra small,
+  .nivel .win small {
+    display: block;
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+
+  /* ---------------------------------------------------------- grafico */
+
+  .cartao-grafico {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 18px 18px 14px;
+  }
+
+  .legenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    color: var(--ink-2);
+    margin-bottom: 14px;
+  }
+  .legenda i {
+    display: inline-block;
+    width: 11px; height: 11px;
+    border-radius: 1px;
+    margin-right: 6px;
+    vertical-align: -1px;
+  }
+  .legenda .k { display: flex; align-items: center; }
+  .legenda .risco {
+    width: 15px; height: 0;
+    border-top: 2px solid var(--ink);
+    margin-right: 6px;
+    display: inline-block;
+    vertical-align: 4px;
+  }
+  .legenda .risco.tracejada { border-top-style: dashed; }
+
+  .scroller { overflow-x: auto; }
+  svg { display: block; max-width: 100%; height: auto; }
+
+  .g-eixo { stroke: var(--line); stroke-width: 1; }
+  .g-grade { stroke: var(--line); stroke-width: 1; opacity: 0.55; }
+  .g-rotulo {
+    font-family: var(--f-mono);
+    font-size: 10.5px;
+    fill: var(--ink-3);
+  }
+  .g-strike {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    fill: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .g-strike.destaque { fill: var(--ink); font-weight: 600; }
+  .g-titulo {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    fill: var(--ink-3);
+    text-transform: uppercase;
+  }
+  .g-valor {
+    font-family: var(--f-mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    fill: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .g-etiqueta {
+    font-family: var(--f-mono);
+    font-size: 9px;
+    font-weight: 600;
+    fill: #ffffff;
+    letter-spacing: 0.04em;
+  }
+  .g-linha-spot { stroke: var(--ink); stroke-width: 1.75; }
+  .g-linha-flip { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .g-nota {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    fill: var(--ink-2);
+    font-weight: 500;
+  }
+  .barra-alvo { fill: transparent; cursor: crosshair; }
+  .barra-alvo:hover + .realce, .barra-alvo:focus + .realce { opacity: 1; }
+  .realce { fill: var(--ink); opacity: 0; pointer-events: none; }
+
+  .tooltip {
+    position: fixed;
+    z-index: 40;
+    pointer-events: none;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 3px;
+    box-shadow: var(--shadow);
+    padding: 9px 11px;
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 250px;
+  }
+  .tooltip[hidden] { display: none; }
+  .tooltip .t-strike {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tooltip .t-linha { display: flex; justify-content: space-between; gap: 14px; }
+  .tooltip .t-linha span:last-child { font-variant-numeric: tabular-nums; }
+
+  /* --------------------------------------------------------- tabelas */
+
+  details {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  summary {
+    cursor: pointer;
+    padding: 13px 16px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  summary:hover { color: var(--ink); }
+  summary:focus-visible { outline: 2px solid var(--pos); outline-offset: -2px; }
+  details > div { padding: 0 16px 16px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td {
+    padding: 6px 10px;
+    text-align: right;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--f-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  th:first-child, td:first-child { text-align: left; }
+
+  /* ------------------------------------------------------ definicoes */
+
+  .defs { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+  .def { background: var(--surface); padding: 16px 17px; }
+  .def h3 {
+    font-family: var(--f-display);
+    font-size: 14.5px;
+    font-weight: 600;
+    margin: 0 0 5px;
+  }
+  .def p { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+
+  /* --------------------------------------------------------- rodape */
+
+  .premissas {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line-strong);
+    border-radius: 3px;
+    padding: 16px 18px;
+  }
+  .premissas h2 { font-size: 15px; margin-bottom: 8px; }
+  .premissas ul { margin: 0; padding-left: 19px; display: flex; flex-direction: column; gap: 7px; }
+  .premissas li { font-size: 13.5px; color: var(--ink-2); }
+  .premissas code {
+    font-family: var(--f-mono);
+    font-size: 12.5px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0 4px;
+    color: var(--ink);
+  }
+
+  .rodape {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <span class="eyebrow">Exposição a gama · opções de BOVA11 · pontos do mini índice</span>
+    <h1>Gama Exposed</h1>
+    <p class="sub">
+      Perfil de exposição a gama dos dealers, calculado a partir das posições em
+      aberto publicadas pela B3. Página informativa: apresenta os números e o que
+      cada um mede, sem sugerir operação.
+    </p>
+    <div class="stamp">
+      <span>Subjacente <b>BOVA11</b></span>
+      <span>Fechamento <b id="s-spot">—</b></span>
+      <span>Ibovespa <b id="s-ibov">—</b></span>
+      <span>Posições em aberto de <b id="s-data">—</b></span>
+      <span>Vol implícita <b id="s-vol">—</b></span>
+    </div>
+  </header>
+
+  <section class="secao">
+    <h2>Vencimento</h2>
+    <p class="hint">
+      O gama de curto prazo é dominado pelo vencimento mais próximo. BOVA11 tem
+      séries semanais e mensais, e o perfil muda bastante entre elas.
+    </p>
+    <div class="venc" id="venc" role="group" aria-label="Selecionar vencimento"></div>
+  </section>
+
+  <section class="regime" aria-label="Gama no preço de referência">
+    <div class="regime-num">
+      <span class="label">Gama líquido no preço de referência</span>
+      <span class="valor" id="s-gama">—</span>
+      <span class="unidade">de delta, por 1% de movimento do BOVA11</span>
+      <span class="tag" id="s-tag">—</span>
+    </div>
+    <div class="regime-txt">
+      <p>
+        O sinal indica <strong>em que direção o hedge dos dealers empurra o
+        preço</strong>, sob a hipótese padrão de que o dealer está comprado em
+        call e vendido em put.
+      </p>
+      <p>
+        <strong>Gama positivo:</strong> o hedge é contracíclico — vende na alta e
+        compra na queda —, o que tende a amortecer o movimento.
+        <strong>Gama negativo:</strong> o hedge é pró-cíclico e tende a amplificar.
+      </p>
+      <p>
+        É uma tendência estatística, não uma regra. Nenhuma estatística de
+        validação acompanha estes números ainda.
+      </p>
+    </div>
+  </section>
+
+  <section class="secao">
+    <h2>Níveis</h2>
+    <p class="hint">
+      Cada nível aparece nas duas escalas: strike do BOVA11 em reais e o
+      equivalente em pontos do mini índice. As paredes são faixas de strikes, não
+      valores exatos — gama é contínuo, e a largura da faixa é a resolução real.
+    </p>
+    <div class="niveis" id="niveis"></div>
+  </section>
+
+  <section class="secao">
+    <h2>Perfil por strike</h2>
+    <p class="hint">
+      Eixo horizontal em pontos do mini índice. Acima, gama líquido por strike;
+      abaixo, posições em aberto de call e put. As linhas verticais atravessam
+      os dois painéis.
+    </p>
+    <div class="cartao-grafico">
+      <div class="legenda">
+        <span class="k"><i style="background: var(--gama-pos)"></i>Gama positivo · amortece</span>
+        <span class="k"><i style="background: var(--gama-neg)"></i>Gama negativo · amplifica</span>
+        <span class="k"><i style="background: var(--call)"></i>Call em aberto</span>
+        <span class="k"><i style="background: var(--put)"></i>Put em aberto</span>
+        <span class="k"><span class="risco"></span>Preço</span>
+        <span class="k"><span class="risco tracejada" style="border-color: var(--flip)"></span>Virada de sinal</span>
+      </div>
+      <div class="scroller">
+        <svg id="grafico" role="img" aria-labelledby="g-desc"></svg>
+        <p id="g-desc" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <details>
+    <summary>Ver os números em tabela</summary>
+    <div class="scroller"><table id="tabela"></table></div>
+  </details>
+
+  <section class="secao">
+    <h2>O que cada número mede</h2>
+    <div class="defs">
+      <div class="def">
+        <h3>Gama líquido</h3>
+        <p>
+          Quanto a posição de delta dos dealers muda, em reais, quando o BOVA11
+          se move 1%. Soma calls e puts do vencimento, com o sinal da convenção
+          de posicionamento.
+        </p>
+      </div>
+      <div class="def">
+        <h3>Virada de sinal</h3>
+        <p>
+          Strike em que o gama líquido cruza o zero, interpolado entre os dois
+          strikes vizinhos. Acima e abaixo dele o hedge dos dealers muda de
+          direção.
+        </p>
+      </div>
+      <div class="def">
+        <h3>Parede de call e de put</h3>
+        <p>
+          Faixa de strikes que concentra a maior exposição a gama de call (acima
+          do preço) e de put (abaixo). Definida por exposição, não por posição em
+          aberto bruta: posição grande e distante tem gama irrelevante.
+        </p>
+      </div>
+      <div class="def">
+        <h3>Posição em aberto</h3>
+        <p>
+          Contratos em aberto por série, do campo <code>TtlPos</code> da B3 — a
+          soma das posições coberta, travada e descoberta.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="premissas">
+    <h2>Procedência e premissas</h2>
+    <ul>
+      <li>
+        Posições em aberto e cadastro de séries vêm dos arquivos públicos da B3
+        (<code>DerivativesOpenPositionFile</code> e
+        <code>InstrumentsConsolidatedFile</code>). São dados de
+        <strong>fechamento do dia anterior</strong> — a B3 não publica posição
+        intradiária.
+      </li>
+      <li>
+        <code>contract_size = 1</code> por opção. A B3 não declara multiplicador
+        para <code>OPTION ON EQUITIES</code>: <code>CtrctMltplr</code> e
+        <code>AsstQtnQty</code> estão vazios em todas as séries. É uma
+        <strong>premissa de modelagem</strong> — se estiver errada, toda a
+        exposição sai multiplicada por 100.
+      </li>
+      <li>
+        Volatilidade implícita resolvida <strong>série por série</strong> a
+        partir do <code>RefPric</code> da B3 — o preço de referência que a
+        bolsa publica para toda série, inclusive as que não negociaram. É a
+        marcação da bolsa, não necessariamente preço negociado: no arquivo
+        deste dia, 123 mil séries têm <code>RefPric</code> e apenas 18 mil
+        tiveram negócio. A cobertura efetiva aparece no topo da página.
+      </li>
+      <li>
+        Preço do BOVA11 e do Ibovespa são os <strong>fechamentos
+        oficiais</strong> do arquivo da B3, e a conversão para pontos de WIN é
+        a razão entre os dois. Aproximação válida perto do dinheiro.
+      </li>
+      <li>
+        Taxa livre de risco 10,5% a.a. e dividend yield 3,5% a.a. entram como
+        parâmetros fixos, não observados.
+      </li>
+      <li>
+        Posição em aberto não informa quem está comprado e quem está vendido. A
+        convenção &ldquo;dealer comprado em call, vendido em put&rdquo; é uma
+        <strong>heurística</strong> sobre o outro lado do fluxo — é a suposição em
+        que todo painel de gama se apoia, e continua sendo suposição.
+      </li>
+    </ul>
+  </section>
+
+  <footer class="rodape">
+    <span>Página informativa sobre dados públicos de mercado. Não constitui
+      recomendação, análise ou orientação de investimento.</span>
+    <span id="s-geracao">—</span>
+  </footer>
+
+</div>
+
+<div class="tooltip" id="tooltip" hidden></div>
+
+<script>
+  const DADOS = /*__DADOS__*/ null;
+
+  const fmt0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
+  const fmt2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt1 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  function brl(v) {
+    const s = v < 0 ? "−" : "";
+    const a = Math.abs(v);
+    if (a >= 1e9) return s + "R$ " + fmt2.format(a / 1e9) + " bi";
+    if (a >= 1e6) return s + "R$ " + fmt2.format(a / 1e6) + " mi";
+    if (a >= 1e3) return s + "R$ " + fmt0.format(a / 1e3) + " mil";
+    return s + "R$ " + fmt0.format(a);
+  }
+  function reais(v) { return "R$ " + fmt2.format(v); }
+  function pontos(v) { return fmt0.format(Math.round(v)); }
+
+  const el = (id) => document.getElementById(id);
+  const svgNS = "http://www.w3.org/2000/svg";
+  function mk(tag, attrs, txt) {
+    const n = document.createElementNS(svgNS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (txt !== undefined) n.textContent = txt;
+    return n;
+  }
+
+  let atual = 0;
+
+  /* ------------------------------------------------------------ topo */
+
+  function pintarTopo() {
+    el("s-spot").textContent = reais(DADOS.spot);
+    el("s-ibov").textContent = pontos(DADOS.spot * DADOS.ratio_win) + " pts";
+    el("s-data").textContent = DADOS.as_of.split("-").reverse().join("/");
+    el("s-geracao").textContent = "Gerado em " + DADOS.gerado_em + " a partir dos arquivos públicos da B3.";
+  }
+
+  function pintarVol(v) {
+    el("s-vol").textContent =
+      fmt2.format(v.vol_media * 100).replace(",00", "") + "% · " +
+      v.iv_resolvidas + "/" + v.iv_total + " séries";
+  }
+
+  function pintarChips() {
+    const box = el("venc");
+    box.textContent = "";
+    DADOS.vencimentos.forEach((v, i) => {
+      const b = document.createElement("button");
+      b.className = "chip";
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(i === atual));
+      const d = v.data.split("-");
+      b.textContent = v.rotulo.split(" ")[0] + " · " + d[2] + "/" + d[1];
+      b.addEventListener("click", () => { atual = i; render(); });
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------------------------------------------------------- regime */
+
+  function pintarRegime(v) {
+    const negativo = v.gama_no_spot < 0;
+    el("s-gama").textContent = brl(v.gama_no_spot);
+    el("s-gama").style.color = negativo ? "var(--neg)" : "var(--pos)";
+    const tag = el("s-tag");
+    tag.textContent = negativo ? "Gama negativo" : "Gama positivo";
+    tag.className = "tag " + (negativo ? "is-neg" : "is-pos");
+  }
+
+  /* ---------------------------------------------------------- niveis */
+
+  function linhaNivel(nome, sub, valorTxt, winTxt, desenho) {
+    const row = document.createElement("div");
+    row.className = "nivel";
+    const n = document.createElement("div");
+    n.className = "nome";
+    n.innerHTML = "<span></span><span></span>";
+    n.children[0].textContent = nome;
+    n.children[1].textContent = sub;
+    const barra = document.createElement("div");
+    barra.className = "barra";
+    barra.appendChild(Object.assign(document.createElement("div"), { className: "trilho" }));
+    desenho(barra);
+    const c = document.createElement("div");
+    c.className = "cifra";
+    c.innerHTML = "<small>strike BOVA11</small>";
+    c.insertBefore(document.createTextNode(valorTxt), c.firstChild);
+    const w = document.createElement("div");
+    w.className = "win";
+    w.innerHTML = "<small>pontos WIN</small>";
+    w.insertBefore(document.createTextNode(winTxt), w.firstChild);
+    row.append(n, barra, c, w);
+    return row;
+  }
+
+  function pintarNiveis(v) {
+    const box = el("niveis");
+    box.textContent = "";
+
+    const ks = v.strikes;
+    const lo = ks[0], hi = ks[ks.length - 1];
+    const pos = (k) => ((k - lo) / (hi - lo)) * 100;
+
+    const marcaSpot = (barra) => {
+      const m = document.createElement("div");
+      m.className = "marca";
+      m.style.left = "calc(" + pos(DADOS.spot) + "% - 1px)";
+      m.title = "preço de referência";
+      barra.appendChild(m);
+    };
+
+    if (v.call_wall) {
+      const cw = v.call_wall;
+      box.appendChild(linhaNivel(
+        "Parede de call", "faixa acima do preço",
+        cw.inicio === cw.fim ? reais(cw.pico) : reais(cw.inicio) + " – " + reais(cw.fim),
+        cw.inicio === cw.fim ? pontos(cw.pico * DADOS.ratio_win)
+          : pontos(cw.inicio * DADOS.ratio_win) + " – " + pontos(cw.fim * DADOS.ratio_win),
+        (barra) => {
+          const f = document.createElement("div");
+          f.className = "faixa";
+          f.style.left = pos(cw.inicio) + "%";
+          f.style.width = Math.max(pos(cw.fim) - pos(cw.inicio), 1.2) + "%";
+          f.style.background = "var(--pos)";
+          barra.appendChild(f);
+          marcaSpot(barra);
+        }
+      ));
+    }
+
+    if (v.flip !== null) {
+      const dist = v.flip - DADOS.spot;
+      box.appendChild(linhaNivel(
+        "Virada de sinal",
+        (dist >= 0 ? "+" : "−") + fmt2.format(Math.abs(dist)) + " do preço de referência",
+        reais(v.flip), pontos(v.flip * DADOS.ratio_win),
+        (barra) => {
+          const p = document.createElement("div");
+          p.className = "ponto";
+          p.style.left = "calc(" + pos(v.flip) + "% - 1.5px)";
+          p.style.background = "var(--ink-2)";
+          barra.appendChild(p);
+          marcaSpot(barra);
+        }
+      ));
+    }
+
+    if (v.put_wall) {
+      const pw = v.put_wall;
+      box.appendChild(linhaNivel(
+        "Parede de put", "faixa abaixo do preço",
+        pw.inicio === pw.fim ? reais(pw.pico) : reais(pw.inicio) + " – " + reais(pw.fim),
+        pw.inicio === pw.fim ? pontos(pw.pico * DADOS.ratio_win)
+          : pontos(pw.inicio * DADOS.ratio_win) + " – " + pontos(pw.fim * DADOS.ratio_win),
+        (barra) => {
+          const f = document.createElement("div");
+          f.className = "faixa";
+          f.style.left = pos(pw.inicio) + "%";
+          f.style.width = Math.max(pos(pw.fim) - pos(pw.inicio), 1.2) + "%";
+          f.style.background = "var(--neg)";
+          barra.appendChild(f);
+          marcaSpot(barra);
+        }
+      ));
+    }
+  }
+
+  /* --------------------------------------------------------- grafico */
+
+  const tip = el("tooltip");
+  function mostrarTip(ev, html) {
+    tip.innerHTML = html;
+    tip.hidden = false;
+    const r = tip.getBoundingClientRect();
+    let x = ev.clientX + 14, y = ev.clientY - r.height / 2;
+    if (x + r.width > window.innerWidth - 8) x = ev.clientX - r.width - 14;
+    y = Math.max(8, Math.min(y, window.innerHeight - r.height - 8));
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  }
+  function esconderTip() { tip.hidden = true; }
+
+  function pintarGrafico(v) {
+    const svg = el("grafico");
+    svg.textContent = "";
+
+    const ks = v.strikes;
+    const n = ks.length;
+
+    // Duas faixas empilhadas compartilhando o eixo horizontal.
+    const passo = 34;
+    const margE = 62, margD = 16;
+    const topoRot = 60;
+    const hGama = 240, hVao = 42, hOi = 170, hEixo = 48;
+    const W = margE + n * passo + margD;
+    const H = topoRot + hGama + hVao + hOi + hEixo;
+
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
+
+    const yGama0 = topoRot;
+    const yGama1 = topoRot + hGama;
+    const yOi0 = yGama1 + hVao;
+    const yOi1 = yOi0 + hOi;
+
+    const xDe = (i) => margE + i * passo + passo / 2;
+    const xPreco = (pr) => {
+      const lo = ks[0], hi = ks[n - 1];
+      const frac = (pr - lo) / (hi - lo);
+      return margE + (frac * (n - 1) + 0.5) * passo;
+    };
+
+    const maxG = Math.max(...v.gama.map(Math.abs), 1);
+    const zeroG = yGama0 + hGama / 2;
+    const meiaAltura = hGama / 2 - 22;
+    const yGama = (g) => zeroG - (g / maxG) * meiaAltura;
+
+    const maxOi = Math.max(...v.oi_call, ...v.oi_put, 1);
+    const yOi = (q) => yOi1 - (q / maxOi) * (hOi - 14);
+
+    // grade e escala do painel de gama
+    [-1, -0.5, 0, 0.5, 1].forEach((f) => {
+      const y = zeroG - f * meiaAltura;
+      svg.appendChild(mk("line", {
+        x1: margE, y1: y, x2: W - margD, y2: y,
+        class: f === 0 ? "g-eixo" : "g-grade"
+      }));
+      svg.appendChild(mk("text", {
+        x: margE - 8, y: y + 3.5, class: "g-rotulo", "text-anchor": "end"
+      }, f === 0 ? "0" : fmt1.format(f * maxG / 1e6)));
+    });
+
+    // grade e escala do painel de posicoes
+    [0, 0.5, 1].forEach((f) => {
+      const y = yOi1 - f * (hOi - 14);
+      svg.appendChild(mk("line", {
+        x1: margE, y1: y, x2: W - margD, y2: y,
+        class: f === 0 ? "g-eixo" : "g-grade"
+      }));
+      svg.appendChild(mk("text", {
+        x: margE - 8, y: y + 3.5, class: "g-rotulo", "text-anchor": "end"
+      }, f === 0 ? "0" : fmt1.format(f * maxOi / 1e6)));
+    });
+
+    svg.appendChild(mk("text", { x: margE, y: yGama0 - 14, class: "g-titulo" },
+      "Gama liquido \u2014 R$ milhoes por 1% de movimento".replace("liquido", "líquido").replace("milhoes", "milhões")));
+    svg.appendChild(mk("text", { x: margE, y: yOi0 - 14, class: "g-titulo" },
+      "Posi\u00e7\u00f5es em aberto \u2014 milh\u00f5es de contratos"));
+
+    // ------------------------------------------------------- barras
+    for (let i = 0; i < n; i++) {
+      const x = xDe(i);
+      const g = v.gama[i];
+      const larguraG = passo - 10;
+
+      const yTopo = g >= 0 ? yGama(g) : zeroG;
+      const alturaG = Math.max(Math.abs(yGama(g) - zeroG), 1);
+      svg.appendChild(mk("rect", {
+        x: x - larguraG / 2, y: yTopo,
+        width: larguraG, height: alturaG,
+        fill: g >= 0 ? "var(--gama-pos)" : "var(--gama-neg)",
+        rx: 2
+      }));
+
+      const emMi = g / 1e6;
+      svg.appendChild(mk("text", {
+        x: x,
+        y: g >= 0 ? yGama(g) - 6 : yGama(g) + 13,
+        class: "g-valor", "text-anchor": "middle"
+      }, Math.abs(emMi) < 0.05 ? "0" : fmt1.format(emMi)));
+
+      const larguraOi = (passo - 12) / 2;
+      const hc = Math.max(yOi1 - yOi(v.oi_call[i]), 0.8);
+      svg.appendChild(mk("rect", {
+        x: x - larguraOi - 1, y: yOi1 - hc,
+        width: larguraOi, height: hc,
+        fill: "var(--call)", rx: 1.5
+      }));
+      const hp = Math.max(yOi1 - yOi(v.oi_put[i]), 0.8);
+      svg.appendChild(mk("rect", {
+        x: x + 1, y: yOi1 - hp,
+        width: larguraOi, height: hp,
+        fill: "var(--put)", rx: 1.5
+      }));
+
+      const win = Math.round(ks[i] * DADOS.ratio_win);
+      svg.appendChild(mk("text", {
+        x: x, y: yOi1 + (i % 2 === 0 ? 16 : 29),
+        class: "g-strike", "text-anchor": "middle"
+      }, fmt0.format(win)));
+    }
+
+    // -------------------------------------------- linhas de referencia
+    const linhas = [];
+    linhas.push({
+      p: DADOS.spot, cor: "var(--ink)", tracejado: "6 4",
+      rot: "PRE\u00c7O " + fmt0.format(Math.round(DADOS.spot * DADOS.ratio_win))
+    });
+    if (v.flip !== null) {
+      linhas.push({
+        p: v.flip, cor: "var(--flip)", tracejado: "7 3 2 3",
+        rot: "VIRADA " + fmt0.format(Math.round(v.flip * DADOS.ratio_win))
+      });
+    }
+    if (v.call_wall) {
+      linhas.push({
+        p: v.call_wall.pico, cor: "var(--call)", tracejado: "2 3",
+        rot: "CALL " + fmt0.format(Math.round(v.call_wall.pico * DADOS.ratio_win)),
+        faixa: v.call_wall
+      });
+    }
+    if (v.put_wall) {
+      linhas.push({
+        p: v.put_wall.pico, cor: "var(--put)", tracejado: "2 3",
+        rot: "PUT " + fmt0.format(Math.round(v.put_wall.pico * DADOS.ratio_win)),
+        faixa: v.put_wall
+      });
+    }
+
+    // faixas das paredes atras das linhas
+    linhas.forEach((L) => {
+      if (!L.faixa || L.faixa.inicio === L.faixa.fim) return;
+      const x1 = xPreco(Math.max(L.faixa.inicio, ks[0]));
+      const x2 = xPreco(Math.min(L.faixa.fim, ks[n - 1]));
+      svg.appendChild(mk("rect", {
+        x: Math.min(x1, x2), y: yGama0,
+        width: Math.abs(x2 - x1), height: yOi1 - yGama0,
+        fill: L.cor, "fill-opacity": "0.08"
+      }));
+    });
+
+    linhas.forEach((L, idx) => {
+      if (L.p < ks[0] || L.p > ks[n - 1]) return;
+      const x = xPreco(L.p);
+      svg.appendChild(mk("line", {
+        x1: x, y1: yGama0 - 6, x2: x, y2: yOi1 + 6,
+        stroke: L.cor, "stroke-width": 1.75,
+        "stroke-dasharray": L.tracejado
+      }));
+      const yEt = 15 + idx * 14;
+      const larg = L.rot.length * 6.2 + 12;
+      const cx = Math.min(Math.max(x, larg / 2 + 2), W - larg / 2 - 2);
+      svg.appendChild(mk("rect", {
+        x: cx - larg / 2, y: yEt - 10,
+        width: larg, height: 14, fill: L.cor, rx: 2
+      }));
+      svg.appendChild(mk("text", {
+        x: cx, y: yEt, class: "g-etiqueta", "text-anchor": "middle"
+      }, L.rot));
+    });
+
+    // ------------------------------------------------ alvos de hover
+    for (let i = 0; i < n; i++) {
+      const x = xDe(i);
+      const alvo = mk("rect", {
+        x: x - passo / 2, y: yGama0, width: passo, height: yOi1 - yGama0,
+        class: "barra-alvo", tabindex: "0", role: "button",
+        "aria-label": "strike " + fmt2.format(ks[i])
+      });
+      const conteudo =
+        "<span class='t-strike'>WIN " + pontos(ks[i] * DADOS.ratio_win) +
+        " &middot; strike " + reais(ks[i]) + "</span>" +
+        "<span class='t-linha'><span>Gama</span><span>" + brl(v.gama[i]) + "</span></span>" +
+        "<span class='t-linha'><span>Call em aberto</span><span>" + fmt0.format(v.oi_call[i]) + "</span></span>" +
+        "<span class='t-linha'><span>Put em aberto</span><span>" + fmt0.format(v.oi_put[i]) + "</span></span>";
+      alvo.addEventListener("mousemove", (ev) => mostrarTip(ev, conteudo));
+      alvo.addEventListener("mouseleave", esconderTip);
+      alvo.addEventListener("focus", (ev) => {
+        const r = ev.target.getBoundingClientRect();
+        mostrarTip({ clientX: r.left + r.width / 2, clientY: r.top + 40 }, conteudo);
+      });
+      alvo.addEventListener("blur", esconderTip);
+      svg.appendChild(alvo);
+    }
+
+    svg.appendChild(mk("text", {
+      x: (margE + W - margD) / 2, y: H - 9,
+      class: "g-titulo", "text-anchor": "middle"
+    }, "Pontos do mini \u00edndice (WIN)"));
+
+    el("g-desc").textContent =
+      "Gama por strike no vencimento " + v.data + ". Gama liquido no preco: " + brl(v.gama_no_spot) + ".";
+  }
+
+  /* --------------------------------------------------------- tabela */
+
+  function pintarTabela(v) {
+    const t = el("tabela");
+    t.textContent = "";
+    const thead = document.createElement("thead");
+    const tr = document.createElement("tr");
+    ["Strike (R$)", "Pontos WIN", "Gama líquido", "Gama call", "Gama put", "Call aberto", "Put aberto"]
+      .forEach((h) => { const th = document.createElement("th"); th.textContent = h; tr.appendChild(th); });
+    thead.appendChild(tr);
+    t.appendChild(thead);
+    const tb = document.createElement("tbody");
+    v.strikes.forEach((k, i) => {
+      const r = document.createElement("tr");
+      [fmt2.format(k), pontos(k * DADOS.ratio_win), brl(v.gama[i]), brl(v.gama_call[i]),
+       brl(v.gama_put[i]), fmt0.format(v.oi_call[i]), fmt0.format(v.oi_put[i])]
+        .forEach((c) => { const td = document.createElement("td"); td.textContent = c; r.appendChild(td); });
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+  }
+
+  /* --------------------------------------------------------- render */
+
+  function render() {
+    const v = DADOS.vencimentos[atual];
+    pintarChips();
+    pintarVol(v);
+    pintarRegime(v);
+    pintarNiveis(v);
+    pintarGrafico(v);
+    pintarTabela(v);
+  }
+
+  pintarTopo();
+  render();
+  window.addEventListener("resize", esconderTip);
+</script>

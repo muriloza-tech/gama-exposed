@@ -1,0 +1,74 @@
+name: Publicar painel
+
+# A B3 publica os arquivos de D depois do fechamento. Rodamos as 23:00 UTC
+# (20:00 em Brasilia) para o painel do dia seguinte estar pronto antes da
+# abertura. O horario do cron do GitHub pode atrasar alguns minutos -- nao
+# importa aqui, o dado nao muda depois de publicado.
+on:
+  schedule:
+    - cron: "0 23 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      data:
+        description: "Data de referencia (AAAA-MM-DD). Vazio = mais recente."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Uma publicacao por vez; nao cancela a que estiver rodando.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install numpy pandas requests pytest
+
+      # A matematica e verificada a cada publicacao. Se um teste cair, a
+      # pagina NAO e atualizada -- e melhor ficar com o dado de ontem
+      # visivelmente datado do que publicar numero errado.
+      - name: Rodar a suite de testes
+        run: python -m pytest tests/ -q
+
+      - name: Gerar a pagina
+        run: |
+          if [ -n "${{ inputs.data }}" ]; then
+            python scripts/gerar_pagina.py --data "${{ inputs.data }}"
+          else
+            python scripts/gerar_pagina.py
+          fi
+
+      - name: Conferir que a pagina tem dados injetados
+        run: |
+          test -s site/index.html
+          grep -q "const DADOS = {" site/index.html
+          ! grep -q "__DADOS__" site/index.html
+          ! grep -qi "DADOS SINTETICOS" site/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  publicar:
+    needs: gerar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
