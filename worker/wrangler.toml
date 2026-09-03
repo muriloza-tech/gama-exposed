@@ -1,0 +1,10 @@
+name = "gama-cotacao"
+main = "src/index.js"
+compatibility_date = "2026-09-03"
+
+# Sem variaveis de ambiente e sem segredos: a fonte usada nao exige token.
+# O Worker existe apenas para atravessar o CORS e colocar um cache curto na
+# frente da origem.
+
+[observability]
+enabled = true
