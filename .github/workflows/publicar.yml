@@ -1,9 +1,9 @@
 name: Publicar painel
 
 # A B3 publica os arquivos de D depois do fechamento. Rodamos as 23:00 UTC
-# (20:00 em Brasilia) para o painel do dia seguinte estar pronto antes da
-# abertura. O horario do cron do GitHub pode atrasar alguns minutos -- nao
-# importa aqui, o dado nao muda depois de publicado.
+# (20:00 em Brasilia) para o painel estar pronto antes da abertura seguinte.
+# O cron do GitHub pode atrasar alguns minutos -- irrelevante aqui, o dado
+# nao muda depois de publicado.
 on:
   schedule:
     - cron: "0 23 * * 1-5"
@@ -14,18 +14,19 @@ on:
         required: false
         type: string
 
+# O Pages e servido pelo branch (pasta docs/), nao por deploy do Actions.
+# Entao o job so precisa escrever no repositorio: publicar = commitar docs/.
+# Isso mantem a pagina no ar mesmo se o Actions estiver desligado, e cada
+# commit diario tambem impede que o GitHub desative o cron por inatividade.
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Uma publicacao por vez; nao cancela a que estiver rodando.
 concurrency:
-  group: pages
+  group: publicar
   cancel-in-progress: false
 
 jobs:
-  gerar:
+  publicar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,8 +40,8 @@ jobs:
         run: pip install numpy pandas requests pytest
 
       # A matematica e verificada a cada publicacao. Se um teste cair, a
-      # pagina NAO e atualizada -- e melhor ficar com o dado de ontem
-      # visivelmente datado do que publicar numero errado.
+      # pagina NAO e atualizada -- e melhor ficar com o dado de ontem,
+      # visivelmente datado, do que publicar numero errado.
       - name: Rodar a suite de testes
         run: python -m pytest tests/ -q
 
@@ -52,23 +53,26 @@ jobs:
             python scripts/gerar_pagina.py
           fi
 
-      - name: Conferir que a pagina tem dados injetados
+      # Barreiras contra publicar lixo com cara de dado.
+      - name: Conferir a pagina gerada
         run: |
-          test -s site/index.html
-          grep -q "const DADOS = {" site/index.html
-          ! grep -q "__DADOS__" site/index.html
-          ! grep -qi "DADOS SINTETICOS" site/index.html
+          test -s docs/index.html
+          grep -q "const DADOS = {" docs/index.html
+          if grep -q "__DADOS__" docs/index.html; then
+            echo "marcador de dados nao foi substituido"; exit 1
+          fi
+          if grep -qi "DADOS SINTETICOS" docs/index.html; then
+            echo "pagina publica nao pode conter dado sintetico"; exit 1
+          fi
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-  publicar:
-    needs: gerar
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - id: deploy
-        uses: actions/deploy-pages@v4
+      - name: Commitar se houve mudanca
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- docs/; then
+            echo "sem mudanca na pagina; nada a publicar"
+            exit 0
+          fi
+          git add docs/
+          git commit -m "Painel de $(date -u -d '3 hours ago' +%d/%m/%Y)"
+          git push
