@@ -780,11 +780,13 @@
         intradiária.
       </li>
       <li>
-        <code>contract_size = 1</code> por opção. A B3 não declara multiplicador
-        para <code>OPTION ON EQUITIES</code>: <code>CtrctMltplr</code> e
-        <code>AsstQtnQty</code> estão vazios em todas as séries. É uma
-        <strong>premissa de modelagem</strong> — se estiver errada, toda a
-        exposição sai multiplicada por 100.
+        <code>contract_size = 1</code>: na B3, um contrato de opção sobre
+        BOVA11 equivale a <strong>uma cota</strong>. O &ldquo;× 100&rdquo; que
+        aparece em muito material é a convenção americana e não se aplica
+        aqui. O arquivo da B3 não declara o multiplicador —
+        <code>CtrctMltplr</code> e <code>AsstQtnQty</code> estão vazios em
+        todas as séries, e <code>AllcnRndLot</code> é o lote de negociação,
+        não o tamanho do contrato.
       </li>
       <li>
         Volatilidade implícita resolvida <strong>série por série</strong> a

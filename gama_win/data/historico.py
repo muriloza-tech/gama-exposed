@@ -372,6 +372,6 @@ def chain_do_snapshot(
         is_synthetic=False,
         notas=(
             f"cobertura do OI pelo catalogo: {snap.cobertura_oi:.1%}",
-            f"contract_size={contract_size} e premissa de modelagem",
+            f"contract_size={contract_size} (1 contrato = 1 cota, confirmado)",
         ),
     )

@@ -352,20 +352,25 @@ _KIND_POR_OPTNTP = {"CALL": "C", "PUT": "P"}
 
 # Tamanho do contrato das opcoes de acao/ETF na B3.
 #
-# Fundamentacao: nos 120.683 registros de OPTION ON EQUITIES do arquivo de
-# 2026-09-02, tanto `CtrctMltplr` quanto `AsstQtnQty` estao VAZIOS -- a B3 nao
-# declara multiplicador para essa categoria. `AllcnRndLot` (1, 10 ou 100) e o
-# lote de alocacao/negociacao, nao o tamanho do contrato, e `PricFctr` e 1 em
-# todas as linhas.
+# CONFIRMADO (03/09/2026): na B3, 1 contrato de opcao sobre BOVA11 equivale a
+# 1 COTA de BOVA11. O premio e cotado por cota e o interesse em aberto e
+# contado em contratos de uma cota. O "x 100" que aparece em muito material
+# e a convencao AMERICANA (1 contrato = 100 acoes) -- nao vale aqui.
 #
-# Na B3, opcao sobre acao/ETF equivale a UMA acao do subjacente: o premio e
-# cotado por acao e o interesse em aberto e contado em opcoes. O lote minimo
-# de negociacao (100) e outra coisa.
+# O arquivo da B3 nao ajuda a descobrir isso: nos 120.683 registros de
+# OPTION ON EQUITIES, `CtrctMltplr` e `AsstQtnQty` estao vazios, e
+# `AllcnRndLot` (1, 10 ou 100) e o lote de NEGOCIACAO -- quantas opcoes se
+# compra de uma vez --, nao o tamanho do contrato. Confundir os dois e o
+# caminho natural para o erro.
 #
-# Isto e uma PREMISSA de modelagem, nao um dado do arquivo. Se estiver errada,
-# a exposicao a gama sai multiplicada por 100 -- e foi exatamente 100 que o
-# painel original usava. Confira com quem conhece a serie antes de operar, e
-# sobrescreva com `contract_size=` se necessario.
+# Teste de plausibilidade que apontou na mesma direcao antes da confirmacao:
+# a maior serie de BOVA11 em 02/09 tinha 11.007.308 contratos abertos. A 1
+# cota por contrato, sao 11 milhoes de cotas (R$ 2,0 bi, ~2 dias de volume do
+# ETF). A 100, seriam 1,1 bilhao de cotas (R$ 200 bi, 217 dias de volume
+# integral do fundo numa unica serie) -- implausivel.
+#
+# Errar isto multiplica toda a exposicao em reais por 100. Nao muda strikes,
+# virada de sinal nem paredes: e constante em todos os strikes.
 CONTRACT_SIZE_OPCAO_ACAO = 1.0
 
 
@@ -667,9 +672,9 @@ def montar_chain(
         )
 
     notas.append(
-        f"contract_size={contract_size} e PREMISSA de modelagem: a B3 nao "
-        "declara multiplicador para OPTION ON EQUITIES (CtrctMltplr e "
-        "AsstQtnQty vazios em todas as linhas)"
+        f"contract_size={contract_size}: 1 contrato de opcao sobre "
+        f"{ativo} equivale a 1 cota (confirmado; o 'x 100' e convencao "
+        "americana). A B3 nao declara o multiplicador no arquivo."
     )
 
     return OptionChain(

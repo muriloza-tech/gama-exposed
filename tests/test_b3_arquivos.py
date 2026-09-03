@@ -17,6 +17,7 @@ import pytest
 
 from gama_win.data.sources.b3_arquivos import (
     BASE_URL,
+    CONTRACT_SIZE_OPCAO_ACAO,
     FILE_INSTRUMENTOS,
     FILE_POSICOES,
     B3Error,
@@ -288,3 +289,24 @@ def test_bova_no_arquivo_real_tem_muitas_series():
     df = carregar_posicoes_abertas(REAL, ativo="BOVA", validar_soma=True)
     assert len(df) > 1_000, "BOVA deve ter mais de mil series com OI > 0"
     assert df["open_interest"].max() > 1_000_000
+
+
+# --------------------------------------------------- tamanho do contrato ---
+
+
+def test_contract_size_e_uma_cota():
+    """Na B3, 1 contrato de opcao sobre ETF = 1 cota. O 'x 100' e a convencao
+    americana. Errar isto multiplica toda a exposicao em reais por 100 -- sem
+    mudar strike, virada de sinal nem paredes, o que torna o erro dificil de
+    perceber olhando o grafico."""
+    assert CONTRACT_SIZE_OPCAO_ACAO == 1.0
+
+
+def test_contract_size_e_o_default_de_montar_chain():
+    """A constante so protege se for de fato o default usado."""
+    import inspect
+
+    from gama_win.data.sources.b3_arquivos import montar_chain
+
+    padrao = inspect.signature(montar_chain).parameters["contract_size"].default
+    assert padrao == CONTRACT_SIZE_OPCAO_ACAO == 1.0
