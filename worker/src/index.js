@@ -2,7 +2,7 @@
  * Proxy do painel Gama Exposed. Duas rotas, isoladas uma da outra:
  *
  *   GET /              cotação (BOVA11 e Ibovespa)  — alimenta o marcador de preço
- *   GET /?r=agenda     agenda econômica do dia      — alimenta a aba Agenda
+ *   GET /?r=agenda     calendário da SEMANA         — alimenta a aba Calendário
  *
  * Por que existe: a página é estática e roda no navegador, onde a política
  * de CORS bloqueia a chamada direta. Um Worker é servidor — CORS não se
@@ -109,18 +109,26 @@ async function rotaCotacao(cab) {
 
 /* ============================================================== agenda == */
 
-/** Janela do dia corrente no fuso de Brasilia, em ISO UTC. */
-function janelaDoDia() {
-  const agora = new Date();
-  const brt = new Date(agora.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-  const y = brt.getFullYear();
-  const m = String(brt.getMonth() + 1).padStart(2, "0");
-  const d = String(brt.getDate()).padStart(2, "0");
-  // Brasilia e UTC-3 o ano todo desde o fim do horario de verao.
+/** Semana corrente (segunda a domingo) no fuso de Brasilia, em ISO UTC.
+ *
+ *  Brasilia e UTC-3 o ano todo desde o fim do horario de verao, entao a
+ *  meia-noite local e sempre 03:00Z. */
+function janelaDaSemana() {
+  const brt = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const iso = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+  const hoje = iso(brt);
+  const diaSemana = (brt.getDay() + 6) % 7;            // 0 = segunda
+  const segunda = new Date(brt);
+  segunda.setDate(brt.getDate() - diaSemana);
+
+  const de = `${iso(segunda)}T03:00:00.000Z`;
   return {
-    dia: `${y}-${m}-${d}`,
-    de: `${y}-${m}-${d}T03:00:00.000Z`,
-    ate: new Date(Date.parse(`${y}-${m}-${d}T03:00:00.000Z`) + 86400000).toISOString(),
+    hoje,
+    inicio: iso(segunda),
+    de,
+    ate: new Date(Date.parse(de) + 7 * 86400000).toISOString(),
   };
 }
 
@@ -135,11 +143,16 @@ function normalizar(e) {
     efetivo: e.actual ?? null,
     consenso: e.forecast ?? null,
     anterior: e.previous ?? null,
+    // Versoes numericas: a pagina compara efetivo com consenso para marcar
+    // surpresa, e comparar string formatada daria errado.
+    efetivo_n: typeof e.actualRaw === "number" ? e.actualRaw : null,
+    consenso_n: typeof e.forecastRaw === "number" ? e.forecastRaw : null,
+    anterior_n: typeof e.previousRaw === "number" ? e.previousRaw : null,
   };
 }
 
 async function rotaAgenda(cab) {
-  const { dia, de, ate } = janelaDoDia();
+  const { hoje, inicio, de, ate } = janelaDaSemana();
   const url = `${URL_AGENDA}?from=${de}&to=${ate}&countries=${PAISES}`;
 
   try {
@@ -157,12 +170,12 @@ async function rotaAgenda(cab) {
       .filter((e) => e.titulo && e.hora)
       .sort((a, b) => a.hora.localeCompare(b.hora));
 
-    return json({ ok: true, ts: Date.now(), dia, eventos, erro: null }, 200, cab);
+    return json({ ok: true, ts: Date.now(), hoje, inicio, eventos, erro: null }, 200, cab);
   } catch (err) {
     // Devolve o contrato completo mesmo em falha, para a pagina so precisar
     // olhar `ok` e mostrar o aviso -- nunca quebrar.
     return json(
-      { ok: false, ts: Date.now(), dia, eventos: [], erro: String(err?.message ?? err) },
+      { ok: false, ts: Date.now(), hoje, inicio, eventos: [], erro: String(err?.message ?? err) },
       502,
       cab,
     );

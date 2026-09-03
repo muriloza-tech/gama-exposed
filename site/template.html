@@ -408,78 +408,145 @@
 
   /* =========================================================== agenda === */
 
-  .agenda { display: flex; flex-direction: column; gap: 12px; max-width: 1000px; }
+  .agenda { display: flex; flex-direction: column; gap: 12px; max-width: 1080px; }
   .agenda-topo { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   .agenda-topo h2 { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
   .agenda-topo .quando { font-family: var(--f-num); font-size: 11.5px; color: var(--ink-3); }
   .filtros { display: flex; gap: 6px; margin-left: auto; }
 
-  .grupo-hora {
-    display: grid;
-    grid-template-columns: 62px minmax(0, 1fr);
-    gap: 0 14px;
-    border-top: 1px solid var(--borda);
-    padding: 11px 0 3px;
-  }
-  .grupo-hora:first-of-type { border-top: 0; }
-  .grupo-hora > .hora {
-    font-family: var(--f-num);
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink);
-    padding-top: 1px;
-  }
-  .grupo-hora > .itens { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
-
-  .evento { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .evento .linha1 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .evento .pais {
-    font-family: var(--f-num);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--ink-3);
-    border: 1px solid var(--borda-forte);
-    border-radius: 3px;
-    padding: 1px 5px;
-    flex: none;
-  }
-  .evento .titulo { font-size: 13.5px; color: var(--ink); }
-  .evento .periodo { font-family: var(--f-num); font-size: 11px; color: var(--ink-3); }
-  .evento .numeros { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--f-num); font-size: 11.5px; }
-  .evento .numeros b { color: var(--ink); font-weight: 600; }
-  .evento .numeros span { color: var(--ink-3); }
-  .evento .numeros .efetivo b { color: var(--pos); }
-
-  .rel { width: 7px; height: 7px; border-radius: 50%; flex: none; }
-  .rel.r1 { background: var(--neg); }
-  .rel.r0 { background: var(--put); }
-  .rel.rm1 { background: var(--ink-3); }
-
-  .aviso-agenda {
-    background: var(--card);
-    border: 1px solid var(--borda);
-    border-radius: 10px;
-    padding: 16px 18px;
-    color: var(--ink-2);
-    font-size: 13.5px;
-  }
-
   .marco {
-    display: flex;
-    align-items: center;
-    gap: 9px;
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
     background: var(--card-2);
     border: 1px solid var(--borda-forte);
     border-radius: 8px;
     padding: 10px 13px;
     font-size: 13px;
   }
-  .marco .rotulo { flex: none; }
   .marco b { font-family: var(--f-num); color: var(--ink); }
 
+  .leg-agenda {
+    display: flex; gap: 6px 18px; flex-wrap: wrap;
+    font-family: var(--f-num); font-size: 10.5px; color: var(--ink-3);
+  }
+  .leg-agenda span { display: inline-flex; align-items: center; gap: 6px; }
+
+  .cartao-agenda {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .rolagem-agenda { overflow-x: auto; }
+
+  table.ag {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 720px;
+    table-layout: fixed;
+    font-size: 13px;
+  }
+  table.ag col.c-hora { width: 62px; }
+  table.ag col.c-rel  { width: 22px; }
+  table.ag col.c-pais { width: 104px; }
+  table.ag col.c-ev   { width: auto; }
+  table.ag col.c-num  { width: 92px; }
+
+  table.ag th {
+    font-family: var(--f-num);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    text-align: right;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--borda);
+    background: var(--card);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  table.ag th.esq { text-align: left; }
+
+  table.ag td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--borda);
+    vertical-align: top;
+  }
+  table.ag tr:last-child td { border-bottom: 0; }
+
+  table.ag td.hora {
+    font-family: var(--f-num);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  table.ag td.rel { padding-left: 0; padding-right: 0; text-align: center; }
+  table.ag td.pais {
+    font-family: var(--f-num);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  table.ag td.ev { color: var(--ink); }
+  table.ag td.ev .per { font-family: var(--f-num); font-size: 11px; color: var(--ink-3); margin-left: 6px; }
+  table.ag td.n {
+    font-family: var(--f-num);
+    font-size: 12.5px;
+    text-align: right;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  table.ag td.n.efet { color: var(--ink); font-weight: 600; }
+  table.ag td.n .seta { font-size: 10px; margin-left: 3px; }
+  table.ag td.n .acima { color: var(--pos); }
+  table.ag td.n .abaixo { color: var(--neg); }
+
+  table.ag tr.alta td.ev { font-weight: 600; }
+  table.ag tr.passado td { opacity: 0.55; }
+  table.ag tr.agora td { background: rgba(255,255,255,0.04); }
+
+  table.ag tr.dia td {
+    background: var(--card-2);
+    border-bottom: 1px solid var(--borda-forte);
+    padding: 9px 10px;
+    font-family: var(--f-num);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+    position: sticky;
+    top: 31px;
+    z-index: 1;
+  }
+  table.ag tr.dia .hoje {
+    color: var(--pos);
+    border: 1px solid rgba(0,230,118,0.35);
+    border-radius: 3px;
+    padding: 0 5px;
+    margin-left: 8px;
+    font-size: 9.5px;
+  }
+  table.ag tr.dia .conta { color: var(--ink-3); font-weight: 400; margin-left: 8px; letter-spacing: 0.04em; }
+
+  .rel { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .rel.r1 { background: var(--neg); }
+  .rel.r0 { background: var(--put); }
+  .rel.rm1 { background: var(--ink-3); }
+
+  .aviso-agenda {
+    padding: 16px 18px;
+    color: var(--ink-2);
+    font-size: 13.5px;
+  }
+
   @media (max-width: 680px) {
-    .grupo-hora { grid-template-columns: 52px minmax(0, 1fr); gap: 0 10px; }
+    table.ag { min-width: 640px; }
+    table.ag col.c-num { width: 76px; }
   }
 
   /* ============================================================ metodo === */
@@ -613,15 +680,27 @@
 
   <section class="agenda" id="aba-agenda" role="tabpanel" aria-labelledby="t-agenda" hidden>
     <div class="agenda-topo">
-      <h2>Calendário do dia</h2>
+      <h2>Calendário da semana</h2>
       <span class="quando" id="ag-quando">—</span>
       <div class="filtros">
-        <button class="btn" id="ag-todos" type="button" aria-pressed="true">Tudo</button>
-        <button class="btn" id="ag-relev" type="button" aria-pressed="false">Só relevantes</button>
+        <button class="btn" id="ag-relev" type="button" aria-pressed="true">Relevantes</button>
+        <button class="btn" id="ag-todos" type="button" aria-pressed="false">Tudo</button>
       </div>
     </div>
+
     <div id="ag-marcos"></div>
-    <div id="ag-lista"></div>
+
+    <div class="leg-agenda">
+      <span><i class="rel r1"></i>alta relevância</span>
+      <span><i class="rel r0"></i>média</span>
+      <span><i class="rel rm1"></i>baixa</span>
+      <span><i class="seta acima" style="color:var(--pos)">▲</i>acima do consenso</span>
+      <span><i class="seta abaixo" style="color:var(--neg)">▼</i>abaixo do consenso</span>
+    </div>
+
+    <div class="cartao-agenda">
+      <div class="rolagem-agenda" id="ag-lista"></div>
+    </div>
   </section>
 
   <section class="metodo" id="aba-metodo" role="tabpanel" aria-labelledby="t-metodo" hidden>
@@ -1375,141 +1454,201 @@
     BR: "Brasil", US: "EUA", EU: "Zona do euro", GB: "Reino Unido",
     DE: "Alemanha", CN: "China", JP: "Japão",
   };
-
   let agenda = null;
-  let soRelevantes = false;
+  let soRelevantes = true;   // uma semana inteira sem filtro e ilegivel
+  let jaCentralizou = false; // levar ao dia de hoje so na primeira pintura
 
   const horaBrt = (iso) =>
     new Date(iso).toLocaleTimeString("pt-BR", {
       hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo",
     });
+  const diaBrt = (iso) =>
+    new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 
   /* Marcos que saem do proprio painel -- nada de fonte externa aqui. O
      vencimento e o evento que mais muda o perfil de gama, entao ele pertence
-     a agenda tanto quanto qualquer indicador. */
-  function marcosDoPainel() {
-    const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
-    return DADOS.vencimentos.map((v) => {
-      const dias = Math.round((Date.parse(v.data) - Date.parse(hoje)) / 86400000);
-      const quando = dias === 0 ? "hoje" : dias === 1 ? "amanhã" : "em " + dias + " dias";
-      return { rotulo: v.rotulo.split(" ")[0], data: v.data, quando, dias };
-    }).filter((m) => m.dias >= 0);
-  }
-
+     ao calendario tanto quanto qualquer indicador. */
   function pintarMarcos() {
     const box = el("ag-marcos");
     box.textContent = "";
-    const ms = marcosDoPainel();
+    const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+    const ms = DADOS.vencimentos
+      .map((v) => {
+        const dias = Math.round((Date.parse(v.data) - Date.parse(hoje)) / 86400000);
+        return { rotulo: v.rotulo.split(" ")[0], data: v.data, dias };
+      })
+      .filter((m) => m.dias >= 0);
     if (!ms.length) return;
+
     const div = document.createElement("div");
     div.className = "marco";
     const r = document.createElement("span");
     r.className = "rotulo";
     r.textContent = "Vencimento de opções BOVA11";
-    const txt = document.createElement("span");
-    txt.innerHTML = ms.slice(0, 3).map((m) =>
-      m.rotulo + " <b>" + m.data.split("-").reverse().join("/") + "</b> (" + m.quando + ")"
-    ).join("  ·  ");
-    div.append(r, txt);
+    div.appendChild(r);
+    ms.slice(0, 3).forEach((m) => {
+      const s = document.createElement("span");
+      const quando = m.dias === 0 ? "hoje" : m.dias === 1 ? "amanhã" : "em " + m.dias + " dias";
+      s.append(m.rotulo + " ");
+      const b = document.createElement("b");
+      b.textContent = m.data.split("-").reverse().join("/");
+      s.append(b, " (" + quando + ")");
+      div.appendChild(s);
+    });
     box.appendChild(div);
+  }
+
+  function celulaNum(valor, valorN, consensoN, ehEfetivo) {
+    const td = document.createElement("td");
+    td.className = "n" + (ehEfetivo ? " efet" : "");
+    if (valor === null || valor === undefined || valor === "") {
+      td.textContent = "—";
+      td.style.color = "var(--ink-3)";
+      return td;
+    }
+    td.append(String(valor));
+    // Seta so quando ha os dois numeros: comparar texto formatado erraria.
+    if (ehEfetivo && typeof valorN === "number" && typeof consensoN === "number"
+        && valorN !== consensoN) {
+      const s = document.createElement("span");
+      s.className = "seta " + (valorN > consensoN ? "acima" : "abaixo");
+      s.textContent = valorN > consensoN ? "▲" : "▼";
+      s.title = valorN > consensoN ? "acima do consenso" : "abaixo do consenso";
+      td.appendChild(s);
+    }
+    return td;
   }
 
   function pintarAgenda() {
     pintarMarcos();
-    const lista = el("ag-lista");
-    lista.textContent = "";
+    const box = el("ag-lista");
+    box.textContent = "";
+
+    const aviso = (txt) => {
+      const d = document.createElement("div");
+      d.className = "aviso-agenda";
+      d.textContent = txt;
+      box.appendChild(d);
+    };
 
     if (!DADOS.cotacao_url) {
-      lista.innerHTML = '<div class="aviso-agenda">A agenda precisa do proxy de dados configurado. Sem ele, esta aba fica vazia — o painel de gama não depende dela.</div>';
+      aviso("O calendário precisa do proxy de dados configurado. O painel de gama não depende dele.");
       return;
     }
-    if (agenda === null) {
-      lista.innerHTML = '<div class="aviso-agenda">Carregando a agenda…</div>';
-      return;
-    }
+    if (agenda === null) { aviso("Carregando o calendário…"); return; }
     if (!agenda.ok) {
-      lista.innerHTML = '<div class="aviso-agenda">Agenda indisponível no momento' +
-        (agenda.erro ? " (" + agenda.erro + ")" : "") +
-        '. O painel de gama não é afetado — ele já vem calculado.</div>';
+      aviso("Calendário indisponível no momento" + (agenda.erro ? " (" + agenda.erro + ")" : "") +
+            ". O painel de gama não é afetado — ele já vem calculado.");
       return;
     }
 
     const evs = agenda.eventos.filter((e) => !soRelevantes || e.relevancia >= 0);
-    if (!evs.length) {
-      lista.innerHTML = '<div class="aviso-agenda">Nenhum evento' +
-        (soRelevantes ? " relevante" : "") + " para hoje nas praças acompanhadas.</div>";
-      return;
-    }
+    if (!evs.length) { aviso("Nenhum evento" + (soRelevantes ? " relevante" : "") + " nesta semana."); return; }
 
-    const porHora = new Map();
-    evs.forEach((e) => {
-      const h = horaBrt(e.hora);
-      if (!porHora.has(h)) porHora.set(h, []);
-      porHora.get(h).push(e);
+    const tab = document.createElement("table");
+    tab.className = "ag";
+    const cg = document.createElement("colgroup");
+    ["c-hora", "c-rel", "c-pais", "c-ev", "c-num", "c-num", "c-num"].forEach((c) => {
+      const col = document.createElement("col");
+      col.className = c;
+      cg.appendChild(col);
     });
+    tab.appendChild(cg);
 
-    porHora.forEach((itens, h) => {
-      const g = document.createElement("div");
-      g.className = "grupo-hora";
-      const hh = document.createElement("div");
-      hh.className = "hora";
-      hh.textContent = h;
-      const box = document.createElement("div");
-      box.className = "itens";
-
-      itens.forEach((e) => {
-        const ev = document.createElement("div");
-        ev.className = "evento";
-
-        const l1 = document.createElement("div");
-        l1.className = "linha1";
-        const dot = document.createElement("span");
-        dot.className = "rel r" + (e.relevancia === 1 ? "1" : e.relevancia === 0 ? "0" : "m1");
-        dot.title = e.relevancia === 1 ? "alta relevância"
-          : e.relevancia === 0 ? "média relevância" : "baixa relevância";
-        const pais = document.createElement("span");
-        pais.className = "pais";
-        pais.textContent = PAIS_NOME[e.pais] || e.pais;
-        const tit = document.createElement("span");
-        tit.className = "titulo";
-        tit.textContent = e.titulo;
-        l1.append(dot, pais, tit);
-        if (e.periodo) {
-          const per = document.createElement("span");
-          per.className = "periodo";
-          per.textContent = "(" + e.periodo + ")";
-          l1.appendChild(per);
-        }
-        ev.appendChild(l1);
-
-        const num = [];
-        if (e.efetivo != null && e.efetivo !== "") num.push(["efetivo", "Efetivo", e.efetivo]);
-        if (e.consenso != null && e.consenso !== "") num.push(["", "Consenso", e.consenso]);
-        if (e.anterior != null && e.anterior !== "") num.push(["", "Anterior", e.anterior]);
-        if (num.length) {
-          const n = document.createElement("div");
-          n.className = "numeros";
-          num.forEach(([cls, rot, val]) => {
-            const s = document.createElement("span");
-            if (cls) s.className = cls;
-            s.append(rot + " ");
-            const b = document.createElement("b");
-            b.textContent = String(val);
-            s.appendChild(b);
-            n.appendChild(s);
-          });
-          ev.appendChild(n);
-        }
-        box.appendChild(ev);
+    const thead = document.createElement("thead");
+    const trh = document.createElement("tr");
+    [["Hora", 1], ["", 0], ["Praça", 1], ["Evento", 1], ["Anterior", 0], ["Consenso", 0], ["Efetivo", 0]]
+      .forEach(([t, esq]) => {
+        const th = document.createElement("th");
+        if (esq) th.className = "esq";
+        th.textContent = t;
+        trh.appendChild(th);
       });
+    thead.appendChild(trh);
+    tab.appendChild(thead);
 
-      g.append(hh, box);
-      lista.appendChild(g);
+    const tb = document.createElement("tbody");
+    const agora = Date.now();
+    let diaAtual = null;
+    let linhaHoje = null;
+
+    evs.forEach((e) => {
+      const d = diaBrt(e.hora);
+      if (d !== diaAtual) {
+        diaAtual = d;
+        const tr = document.createElement("tr");
+        tr.className = "dia";
+        const td = document.createElement("td");
+        td.colSpan = 7;
+        const nome = new Date(e.hora).toLocaleDateString("pt-BR", {
+          weekday: "long", timeZone: "America/Sao_Paulo" });
+        td.append(nome.charAt(0).toUpperCase() + nome.slice(1) +
+                  " · " + d.split("-").reverse().join("/"));
+        if (d === agenda.hoje) {
+          const b = document.createElement("span");
+          b.className = "hoje";
+          b.textContent = "HOJE";
+          td.appendChild(b);
+          linhaHoje = tr;
+        }
+        const c = document.createElement("span");
+        c.className = "conta";
+        c.textContent = evs.filter((x) => diaBrt(x.hora) === d).length + " evento(s)";
+        td.appendChild(c);
+        tr.appendChild(td);
+        tb.appendChild(tr);
+      }
+
+      const tr = document.createElement("tr");
+      if (e.relevancia === 1) tr.classList.add("alta");
+      if (Date.parse(e.hora) < agora) tr.classList.add("passado");
+
+      const tdH = document.createElement("td");
+      tdH.className = "hora";
+      tdH.textContent = horaBrt(e.hora);
+
+      const tdR = document.createElement("td");
+      tdR.className = "rel";
+      const dot = document.createElement("i");
+      dot.className = "rel r" + (e.relevancia === 1 ? "1" : e.relevancia === 0 ? "0" : "m1");
+      dot.title = e.relevancia === 1 ? "alta relevância"
+        : e.relevancia === 0 ? "média relevância" : "baixa relevância";
+      tdR.appendChild(dot);
+
+      const tdP = document.createElement("td");
+      tdP.className = "pais";
+      tdP.textContent = PAIS_NOME[e.pais] || e.pais;
+
+      const tdE = document.createElement("td");
+      tdE.className = "ev";
+      tdE.append(e.titulo);
+      if (e.periodo) {
+        const per = document.createElement("span");
+        per.className = "per";
+        per.textContent = e.periodo;
+        tdE.appendChild(per);
+      }
+
+      tr.append(
+        tdH, tdR, tdP, tdE,
+        celulaNum(e.anterior, e.anterior_n, null, false),
+        celulaNum(e.consenso, e.consenso_n, null, false),
+        celulaNum(e.efetivo, e.efetivo_n, e.consenso_n, true),
+      );
+      tb.appendChild(tr);
     });
 
+    tab.appendChild(tb);
+    box.appendChild(tab);
+
+    const dias = new Set(evs.map((x) => diaBrt(x.hora))).size;
     el("ag-quando").textContent =
-      agenda.dia.split("-").reverse().join("/") + " · horários de Brasília · " +
-      evs.length + " evento(s)";
+      evs.length + " evento(s) em " + dias + " dia(s) · horários de Brasília";
+
+    if (linhaHoje && !jaCentralizou) {
+      jaCentralizou = true;
+      linhaHoje.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
   }
 
   async function buscarAgenda() {
@@ -1518,7 +1657,7 @@
       const r = await fetch(DADOS.cotacao_url + "?r=agenda", { cache: "no-store" });
       agenda = await r.json();
     } catch (e) {
-      agenda = { ok: false, eventos: [], erro: String(e.message || e), dia: "" };
+      agenda = { ok: false, eventos: [], erro: String(e.message || e), hoje: "" };
     }
     pintarAgenda();
   }
@@ -1591,18 +1730,14 @@
   }
   ABAS.forEach((a) => el("t-" + a).addEventListener("click", () => trocarAba(a)));
 
-  el("ag-todos").addEventListener("click", () => {
-    soRelevantes = false;
-    el("ag-todos").setAttribute("aria-pressed", "true");
-    el("ag-relev").setAttribute("aria-pressed", "false");
+  function filtro(rel) {
+    soRelevantes = rel;
+    el("ag-relev").setAttribute("aria-pressed", String(rel));
+    el("ag-todos").setAttribute("aria-pressed", String(!rel));
     pintarAgenda();
-  });
-  el("ag-relev").addEventListener("click", () => {
-    soRelevantes = true;
-    el("ag-todos").setAttribute("aria-pressed", "false");
-    el("ag-relev").setAttribute("aria-pressed", "true");
-    pintarAgenda();
-  });
+  }
+  el("ag-relev").addEventListener("click", () => filtro(true));
+  el("ag-todos").addEventListener("click", () => filtro(false));
 
   el("btn-zoom").addEventListener("click", (ev) => {
     zoomAtm = !zoomAtm;
